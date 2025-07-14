@@ -3,7 +3,7 @@ from markdown import markdown
 from typing import Optional
 from frontmatter import load
 from app.puty import DOCUMENTS_DIR, IMAGES_DIR, ALLOWED_FILE_EXTENSIONS
-import secrets
+from secrets import compare_digest
 from fastapi.security import HTTPBasicCredentials
 from pathlib import Path
 
@@ -18,10 +18,8 @@ def load_document_without_password(file_path: Path):
         return post
 
 def check_password(credentials: HTTPBasicCredentials, correct_password: str):
-    correct_username = "admin"  # Фиксированное имя пользователя
-    is_correct_username = secrets.compare_digest(credentials.username, correct_username)
-    is_correct_password = secrets.compare_digest(credentials.password, correct_password)
-    return is_correct_username and is_correct_password
+    is_correct_password = compare_digest(credentials.password, correct_password)
+    return  is_correct_password
 
 def get_document_list(search_query: Optional[str] = None):
     """Получить список всех markdown-документов с возможностью поиска"""
@@ -40,17 +38,20 @@ def get_document_list(search_query: Optional[str] = None):
             if search_query:
                 search_lower = search_query.lower()
                 if (search_lower in doc_data["title"].lower() or
-                    search_lower in doc_data["description"].lower() or
-                    search_lower in doc_data["content"].lower()):
+                    search_lower in doc_data["description"].lower() or 
+                    search_lower in doc_data["content"].lower() ):
                     documents.append(doc_data)
             else:
                 documents.append(doc_data)
     
     return sorted(documents, key=lambda x: x["title"])
 
+
 def process_wiki_links(content: str) -> str:
     """Обрабатывает вики-синтаксис ссылок ![[filename.ext]]"""
+
     def replace_match(match):
+        """Подготовливает ссылки на скачивание файлов"""
         filename = match.group(1)
         file_path = IMAGES_DIR / filename
         
@@ -69,8 +70,18 @@ def process_wiki_links(content: str) -> str:
         replace_match,
         content
     )
-    return content
 
+    def replace_wiki_link(match):
+        """Подготавливает ссылки на связанные документы"""
+        doc_name = match.group(1)
+        # Экранируем специальные символы в URL
+        encoded_name = doc_name.replace(' ', '_')
+        return f'<a href="/api/document/doc/{encoded_name}" class="wiki-link">{doc_name}</a>'
+    
+    # Регулярка для поиска [[Имя Документа]]
+    content = sub(r'\[\[([^\]\n]+)\]\]', replace_wiki_link, content)
+
+    return content
 
 def render_markdown(content: str) -> str:
     """Преобразовать markdown в HTML"""

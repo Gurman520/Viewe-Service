@@ -6,28 +6,7 @@
     {% if error %}
         <div class="alert alert-danger">{{ error }}</div>
     {% else %}
-        {% if is_protected and not request.auth %}
-                <div class="container mt-5">
-                    <div class="row justify-content-center">
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-primary text-white">
-                                    <h4 class="mb-0">Требуется пароль</h4>
-                                </div>
-                                <div class="card-body">
-                                    <form method="get" action="{{ url_for('view_document', document_name=document_name) }}">
-                                        <div class="mb-3">
-                                            <label for="password" class="form-label">Пароль:</label>
-                                            <input type="password" class="form-control" id="password" name="password" required>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary w-100">Открыть документ</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-        {% else %}
+
 
 
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -127,7 +106,7 @@
                 // Автоматическое скрытие через 3 секунды
                 setTimeout(() => {
                     toast.hide();
-                }, 3000);
+                }, 4000);
                     }
 
             // Инициализация всех toast элементов при загрузке страницы
@@ -137,6 +116,30 @@
                     return new bootstrap.Toast(toastEl);
                 });
             });
+
+            function checkTokenExpiration() {
+                const token = document.cookie.split('; ')
+                    .find(row => row.startsWith('doc_session='))
+                    ?.split('=')[1];
+                    
+                if (token) {
+                    fetch('/api/auth/verify_token', {
+                        method: POST,
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }).then(response => {
+                        if (!response.ok) {
+                            // Токен невалиден, перенаправляем на аутентификацию
+                            window.location.href = '/api/auth/{{ document_name | replace(" ", "_") }}';
+                        }
+                    });
+                }
+            }
+            
+            // Проверяем каждые 5 минут
+            setInterval(checkTokenExpiration, 300000);
+            document.addEventListener('DOMContentLoaded', checkTokenExpiration);
         </script>
 
         <!-- Уведомление о копировании -->
@@ -151,6 +154,6 @@
                 </div>
             </div>
         </div>
-        {% endif %}
+        
     {% endif %}
 {% endblock %}
