@@ -1,0 +1,87 @@
+from re import sub
+from markdown import markdown
+from typing import Optional
+from frontmatter import load
+from app.puty import DOCUMENTS_DIR, IMAGES_DIR, ALLOWED_FILE_EXTENSIONS
+import secrets
+from fastapi.security import HTTPBasicCredentials
+from pathlib import Path
+
+
+def load_document_without_password(file_path: Path):
+    """Загружает документ, удаляя пароль из метаданных"""
+    with open(file_path, 'r', encoding='utf-8') as f:
+        post = load(f)
+        # Создаем копию метаданных без пароля
+        clean_metadata = {k: v for k, v in post.metadata.items() if k != 'password'}
+        post.metadata = clean_metadata
+        return post
+
+def check_password(credentials: HTTPBasicCredentials, correct_password: str):
+    correct_username = "admin"  # Фиксированное имя пользователя
+    is_correct_username = secrets.compare_digest(credentials.username, correct_username)
+    is_correct_password = secrets.compare_digest(credentials.password, correct_password)
+    return is_correct_username and is_correct_password
+
+def get_document_list(search_query: Optional[str] = None):
+    """Получить список всех markdown-документов с возможностью поиска"""
+    documents = []
+    for md_file in DOCUMENTS_DIR.glob("*.md"):
+        with open(md_file, "r", encoding="utf-8") as f:
+            post = load(f)
+            doc_data = {
+                "file_name": md_file.stem,
+                "title": post.get("title", md_file.stem),
+                "description": post.get("description", ""),
+                "content": post.content  # Для поиска по содержимому
+            }
+            
+            # Если есть поисковый запрос, проверяем соответствие
+            if search_query:
+                search_lower = search_query.lower()
+                if (search_lower in doc_data["title"].lower() or
+                    search_lower in doc_data["description"].lower() or
+                    search_lower in doc_data["content"].lower()):
+                    documents.append(doc_data)
+            else:
+                documents.append(doc_data)
+    
+    return sorted(documents, key=lambda x: x["title"])
+
+def process_wiki_links(content: str) -> str:
+    """Обрабатывает вики-синтаксис ссылок ![[filename.ext]]"""
+    def replace_match(match):
+        filename = match.group(1)
+        file_path = IMAGES_DIR / filename
+        
+        # Если файл существует и его расширение разрешено
+        if file_path.exists() and file_path.suffix.lower() in ALLOWED_FILE_EXTENSIONS:
+            return f'<a href="/files/{filename}" class="file-link" download>{filename}</a>'
+        # Если это изображение
+        elif (IMAGES_DIR / filename).exists():
+            return f'<img src="/images/{filename}" alt="{filename}" class="wiki-image">'
+        # Если файл не найден
+        else:
+            return f'<span class="text-danger">[File not found: {filename}]</span>'
+    
+    content = sub(
+        r'!\[\[([^\]\n]+)\]\]',
+        replace_match,
+        content
+    )
+    return content
+
+
+def render_markdown(content: str) -> str:
+    """Преобразовать markdown в HTML"""
+    # Сначала обрабатываем вики-синтаксис изображений
+    processed_content = process_wiki_links(content)
+    
+    extensions = [
+        "fenced_code",
+        "codehilite",
+        "tables",
+        "footnotes",
+        "toc",
+    ]
+    return markdown(processed_content, extensions=extensions)

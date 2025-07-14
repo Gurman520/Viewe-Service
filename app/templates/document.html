@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% else %}
+        {% if is_protected and not request.auth %}
+                <div class="container mt-5">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h4 class="mb-0">Требуется пароль</h4>
+                                </div>
+                                <div class="card-body">
+                                    <form method="get" action="{{ url_for('view_document', document_name=document_name) }}">
+                                        <div class="mb-3">
+                                            <label for="password" class="form-label">Пароль:</label>
+                                            <input type="password" class="form-control" id="password" name="password" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100">Открыть документ</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        {% else %}
+
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>{{ title }}</h1>
+            {% if document_name %}
+            <div>
+                <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#shareModal">
+                    <i class="bi bi-share"></i> Поделиться
+                </button>
+                <a href="{{ url_for('download_document_with_assets', document_name=document_name) }}" 
+                   class="btn btn-outline-secondary me-2"
+                   title="Загрузка документа со всеми вложениями">
+                    <i class="bi bi-file-zip"></i> Скачать документ
+                </a>
+                <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="shareModalLabel">Поделиться документом</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="shareLink" class="form-label">Ссылка для изолированного просмотра:</label>
+                            <input type="text" class="form-control" id="shareLink" 
+                                   value="{{ request.url_for('isolated_view', document_name=document_name|replace(' ', '_')) }}" readonly>
+                                   <small class="text-muted">Эта ссылка открывает документ без возможности вернуться в систему</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button type="button" class="btn btn-primary" onclick="copyShareLink()">
+                            <i class="bi bi-clipboard"></i> Копировать
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if metadata %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Document Details</h5>
+                    <dl class="row">
+                        {% for key, value in metadata.items() %}
+                            <dt class="col-sm-3">{{ key }}</dt>
+                            <dd class="col-sm-9">{{ value }}</dd>
+                        {% endfor %}
+                    </dl>
+                </div>
+            </div>
+        {% endif %}
+        
+        <div class="document-content mb-4">
+            {{ content|safe }}
+        </div>
+        
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{{ url_for('document_list') }}" class="btn btn-primary">
+                <i class="bi bi-arrow-left"></i> Назад
+            </a>
+            
+            {% if document_attachments %}
+            <div>
+                <div class="dropdown d-inline-block ms-2">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                            id="attachmentsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-paperclip"></i> Attachments ({{ document_attachments|length }})
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="attachmentsDropdown">
+                        {% for file in document_attachments %}
+                            <li>
+                                <a class="dropdown-item" href="/files/{{ file }}" download>
+                                    <i class="bi bi-file-earmark"></i> {{ file }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+         <script>
+            function copyShareLink() {
+                const shareLink = document.getElementById('shareLink');
+                shareLink.select();
+                document.execCommand('copy');
+                
+                // Инициализируем и показываем toast
+                const toastEl = document.getElementById('copyToast');
+                const toast = new bootstrap.Toast(toastEl);
+                toast.show();
+
+                // Автоматическое скрытие через 3 секунды
+                setTimeout(() => {
+                    toast.hide();
+                }, 3000);
+                    }
+
+            // Инициализация всех toast элементов при загрузке страницы
+            document.addEventListener('DOMContentLoaded', function() {
+                const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+                toastElList.map(function(toastEl) {
+                    return new bootstrap.Toast(toastEl);
+                });
+            });
+        </script>
+
+        <!-- Уведомление о копировании -->
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+            <div id="copyToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header bg-success text-white">
+                    <strong class="me-auto">Успешно</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body bg-light">
+                    Ссылка успешно скопирована в буфер обмена!
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+{% endblock %}

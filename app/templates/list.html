@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Список документов{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4">Доступные документы</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <form action="{{ url_for('search_documents') }}" method="post" class="row g-2" onsubmit="return validateSearch()">
+                <div class="col-md-10">
+                    <input type="text" 
+                           name="search_query" 
+                           id="searchInput"
+                           class="form-control" 
+                           placeholder="Поиск документов..." 
+                           value="{{ search_query or '' }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100" id="searchButton">Поиск</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if documents %}
+        <div class="list-group">
+            {% for doc in documents %}
+                <a href="{{ url_for('view_document', document_name=doc.file_name) }}" 
+                   class="list-group-item list-group-item-action">
+                    <h5>{{ doc.title }}</h5>
+                    {% if doc.description %}
+                        <p class="mb-1">{{ doc.description }}</p>
+                    {% endif %}
+                    {% if search_query %}
+                        <small class="text-muted">Найдено в списке</small>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+    {% elif search_query %}
+        <div class="alert alert-warning">
+            No documents found matching your search "{{ search_query }}"
+        </div>
+    {% endif %}
+
+    <script>
+        function validateSearch() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput.value.trim() === ' ') {
+                // Если поле поиска пустое, просто перезагружаем страницу
+                window.location.href = "{{ url_for('document_list') }}";
+                return false;
+            }
+            return true;
+        }
+
+        // Дополнительно: отключаем кнопку, если поле пустое
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            
+            searchInput.addEventListener('input', function() {
+                searchButton.disabled = this.value.trim() === '';
+            });
+            
+            // Инициализация состояния кнопки при загрузке
+            searchButton.disabled = searchInput.value.trim() === '';
+        });
+    </script>
+{% endblock %}
