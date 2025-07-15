@@ -64,32 +64,6 @@ def get_document_list(search_query: Optional[str] = None) -> dict[str, list[dict
     
     return sorted_groups
 
-# def get_document_list(search_query: Optional[str] = None):
-#     """Получить список всех markdown-документов с возможностью поиска"""
-#     documents = []
-#     for md_file in DOCUMENTS_DIR.glob("*.md"):
-#         with open(md_file, "r", encoding="utf-8") as f:
-#             post = load(f)
-#             doc_data = {
-#                 "file_name": md_file.stem,
-#                 "title": post.get("title", md_file.stem),
-#                 "description": post.get("description", ""),
-#                 "content": post.content  # Для поиска по содержимому
-#             }
-            
-#             # Если есть поисковый запрос, проверяем соответствие
-#             if search_query:
-#                 search_lower = search_query.lower()
-#                 if (search_lower in doc_data["title"].lower() or
-#                     search_lower in doc_data["description"].lower() or 
-#                     search_lower in doc_data["content"].lower() ):
-#                     documents.append(doc_data)
-#             else:
-#                 documents.append(doc_data)
-    
-#     return sorted(documents, key=lambda x: x["title"])
-
-
 def process_wiki_links(content: str) -> str:
     """Обрабатывает вики-синтаксис ссылок ![[filename.ext]]"""
 

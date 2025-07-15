@@ -34,19 +34,16 @@
         }
         const serverResponse = "{{ document_name }}";
         const decodedText = decodeHtmlEntities(serverResponse);
-        console.log(decodedText); 
-        console.log("{{ document_name }}")
 document.getElementById('authForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    console.log("Название файла, которое пришло: {{ document_name }}");
     const path = decodedText;
     const encodedPath = encodeURIComponent(path)
         .replace(/'/g, "%27")
-    console.log(encodedPath)
+    let utPass = unescape(password.value)
     const response = await fetch(`/api/auth/${encodedPath}`, {
         method: 'POST',
         headers: {
-            'Authorization': 'Basic ' + btoa('user:' + password.value),
+            'Authorization': 'Basic ' + btoa('user:' + utPass),
             'Content-Type': 'application/json'
         },
         credentials: 'include'  // Важно для работы с куками
@@ -54,8 +51,7 @@ document.getElementById('authForm').addEventListener('submit', async (e) => {
     
     if (response.ok) {
         const data = await response.json();
-        console.log("Полученные cookies:", data.cookies);
-        const docResponse = await fetch(`/api/document/doc/${encodedPath}`, {
+        const docResponse = await fetch(`/view/${encodedPath}`, {
                 credentials: "include",  // Передаем куки
             });
         if (docResponse.ok) {

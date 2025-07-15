@@ -10,7 +10,7 @@ templates = Jinja2Templates(directory="app/templates")
 @router.get("/")
 async def home(request: Request):
     """редирект"""
-    return RedirectResponse("/api/document/list")
+    return RedirectResponse("/view/list")
 
 @router.get("/favicon.ico", include_in_schema=False)
 async def favicon():

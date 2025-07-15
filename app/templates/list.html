@@ -49,11 +49,6 @@
                             {% if doc.description %}
                                 <p class="mb-1 text-muted">{{ doc.description }}</p>
                             {% endif %}
-                            {% if doc.file_name + '.md' in DOCUMENT_PASSWORDS %}
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-lock-fill"></i> Protected
-                                </span>
-                            {% endif %}
                         </a>
                         {% endfor %}
                     </div>
@@ -61,6 +56,9 @@
             </div>
         </div>
         {% endfor %}
+        <footer>
+            <p>&copy; 2025 Сулима Р.И. Все права защищены.</p>
+        </footer>
     </div>
 
     <script>

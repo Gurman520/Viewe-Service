@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request, Form, HTTPException, status, Cookie
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from frontmatter import load
-from re import finditer
+from re import finditer, findall
 from zipfile import ZipFile
 from typing import Optional
 from tempfile import NamedTemporaryFile
@@ -11,6 +11,7 @@ from app.puty import DOCUMENTS_DIR, IMAGES_DIR, ALLOWED_FILE_EXTENSIONS
 from app.logic import get_document_list, render_markdown, load_document_without_password
 from app.security import get_document_name_from_token
 from app.logger import logger
+from json import dumps
 
 
 router = APIRouter()
@@ -19,15 +20,13 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
-@router.get("/list", name="document_list")
+@router.get("/list")
 async def list_documents(request: Request, q: Optional[str] = None):
     """Страница со списком всех документов с поиском"""
+    logger.info("Получен запрос на получение Списка документов")
     documents = get_document_list(search_query=q)
     logger.info("Отправлен запрос на получение Списка документов")
-    return templates.TemplateResponse(
-        "list.html",
-        {"request": request, "documents": documents, "search_query": q}
-    )
+    return JSONResponse(content={"document": documents}, status_code=200)
 
 @router.get("/d/{doc_id}", name="document_short_link")
 async def document_short_link(doc_id: str, request: Request):
@@ -47,74 +46,6 @@ async def search_documents(request: Request, search_query: str = Form(...)):
     return templates.TemplateResponse(
         "list.html",
         {"request": request, "documents": documents, "search_query": search_query}
-    )
-
-@router.get("/{document_name}")
-async def view_document(
-    request: Request,
-    document_name: str,
-    doc_session: str = Cookie(default=None)
-):
-    original_name = document_name.replace('_', ' ')
-    md_file = DOCUMENTS_DIR / f"{original_name}.md"
-    
-    if not md_file.exists():
-        raise HTTPException(status_code=404, detail="Document not found")
-    
-    with open(md_file, "r", encoding="utf-8") as f:
-        post = load(f)
-        password = post.metadata.get("password")
-        # Если документ защищен паролем
-        if password:
-            try:
-                if not doc_session:
-                    raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Not authenticated",
-                        headers={"WWW-Authenticate": "Basic"},
-                    )
-        
-                token_doc_name = get_document_name_from_token(doc_session)
-                logger.info("Оригинальное название файла:-" + original_name + "- Полученное имя из Токена:-" + str(token_doc_name) + "-")
-
-                if str(token_doc_name) != original_name:
-                    raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Token not valid for this document",
-                    )
-            except HTTPException:
-                logger.info("Не соответсвие файлов, отправляем на повторную авторизацию")
-                return templates.TemplateResponse(
-                "auth.html",
-                {"request": request, "document_name": document_name}
-            )
-    
-    return await get_document_response(md_file, original_name, request)
-
-
-async def get_document_response(md_file: Path, original_name: str, request):
-    """Создает ответ с содержимым документа"""
-    post = load_document_without_password(md_file)
-    content = render_markdown(post.content)
-
-    attachments = []
-    for match in finditer(r'!\[\[([^\]\n]+)\]\]', post.content):
-        filename = match.group(1)
-        if (IMAGES_DIR / filename).exists() or (IMAGES_DIR / filename).exists():
-            attachments.append(filename)
-    
-    return templates.TemplateResponse(
-        "document.html",
-        {
-            "request": request,
-            "title": post.get("title", original_name),
-            "content": content,
-            "metadata": post.metadata,
-            "document_name": original_name.replace(' ', '_'),
-            "is_protected": True,
-            "original_name": original_name,
-            "document_attachments": attachments 
-        }
     )
     
 @router.get("/{document_name}/download", name="download_document_with_assets")
@@ -183,8 +114,8 @@ async def download_file(filename: str):
         media_type="application/octet-stream"
     )
 
-@router.get("/view/{document_name}", name="isolated_view")
-async def isolated_view(request: Request, document_name: str):
+@router.get("/isolated_view/{document_name}")
+async def create_isolated_view(request: Request, document_name: str):
     """Изолированный просмотр документа без навигации"""
     original_name = document_name.replace('_', ' ')
     md_file = DOCUMENTS_DIR / f"{original_name}.md"
@@ -197,19 +128,15 @@ async def isolated_view(request: Request, document_name: str):
         # Загружаем документ, очищая пароль
         post = load_document_without_password(md_file)
         content = render_markdown(post.content)
-        
-        return templates.TemplateResponse(
-            "isolated.html",  # Новый шаблон для изолированного просмотра
-            {
-                "request": request,
-                "title": post.get("title", original_name),
-                "content": content,
-                "metadata": post.metadata,
-                "document_name": document_name
+        doc = {
+            "title": post.get("title", original_name),
+            "content": content,
+            "metadata": post.metadata,
+            "document_name": document_name
             }
-        )
+        return JSONResponse(content=doc, status_code=200)
 
-@router.get("/doc/{document_name}", name="view_document")
+@router.get("/{document_name}")
 async def document_router(
     request: Request,
     document_name: str,
@@ -228,10 +155,72 @@ async def document_router(
         password = post.metadata.get("password")
         # Если документ защищен паролем
         if password and not doc_session:
-            logger.info("Отправляем на авторизацию файл: |" + document_name)
-            return templates.TemplateResponse(
-                "auth.html",
-                {"request": request, "document_name": document_name}
-            )
+            logger.info("Отправляем на авторизацию файл: | " + document_name)
+            return JSONResponse(content={"document_name": document_name}, status_code=401)
+        
+    logger.info("Отправляем запрос далее")
+    return await view_document(document_name, doc_session)
+
+async def view_document(
+    document_name: str,
+    doc_session: str = Cookie(default=None)
+):
+    original_name = document_name.replace('_', ' ')
+    md_file = DOCUMENTS_DIR / f"{original_name}.md"
     
-    return await view_document(request, document_name, doc_session)
+    if not md_file.exists():
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    with open(md_file, "r", encoding="utf-8") as f:
+        post = load(f)
+        password = post.metadata.get("password")
+        # Если документ защищен паролем
+        if password:
+            try:
+                if not doc_session:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Not authenticated",
+                        headers={"WWW-Authenticate": "Basic"},
+                    )
+        
+                token_doc_name = get_document_name_from_token(doc_session)
+                logger.info("Оригинальное название файла:-" + original_name + "- Полученное имя из Токена:-" + str(token_doc_name) + "-")
+
+                if str(token_doc_name) != original_name:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Token not valid for this document",
+                    )
+            except HTTPException:
+                logger.info("Не соответсвие файлов, отправляем на повторную авторизацию")
+                raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Not authenticated",
+                        headers={"WWW-Authenticate": "Basic"},
+                    )
+    logger.info("Начинаем формировать итоговый ответ")
+    return await get_document_response(md_file, original_name)
+
+
+async def get_document_response(md_file: Path, original_name: str):
+    """Создает ответ с содержимым документа"""
+    post = load_document_without_password(md_file)
+    content = render_markdown(post.content)
+
+    attachments = []
+    for match in finditer(r'!\[\[([^\]\n]+)\]\]', post.content):
+        filename = match.group(1)
+        if (IMAGES_DIR / filename).exists() or (IMAGES_DIR / filename).exists():
+            attachments.append(filename)
+    doc = {
+        "title": post.get("title", original_name),
+        "content": content,
+        "metadata": post.metadata,
+        "document_name": original_name.replace(' ', '_'),
+        "is_protected": True,
+        "original_name": original_name,
+        "document_attachments": attachments 
+    }
+    return JSONResponse(content=doc, status_code=200)
+

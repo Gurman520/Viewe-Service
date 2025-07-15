@@ -37,7 +37,7 @@ async def authenticate_document(
     credentials: HTTPBasicCredentials = Depends(security)
 ):
     original_name = document_name.replace('_', ' ')
-    logger.info("Имя документа: |" + document_name)
+    logger.info("Имя документа: | " + document_name)
     md_file = DOCUMENTS_DIR / f"{original_name}.md"
     
     with open(md_file, "r", encoding="utf-8") as f:
@@ -56,8 +56,8 @@ async def authenticate_document(
     response.set_cookie(
         key=SESSION_COOKIE_NAME,
         value=token,
-        httponly=False,
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         samesite="lax"
     )
+    logger.info("Сформировались Coolie")
     return {"status": "authenticated"}
