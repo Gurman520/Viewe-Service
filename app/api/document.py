@@ -4,6 +4,7 @@ from fastapi.templating import Jinja2Templates
 from frontmatter import load
 from re import finditer
 from zipfile import ZipFile
+from typing import Optional
 from tempfile import NamedTemporaryFile
 from pathlib import Path
 from app.puty import DOCUMENTS_DIR, IMAGES_DIR, ALLOWED_FILE_EXTENSIONS
@@ -17,6 +18,16 @@ router = APIRouter()
 # Шаблоны
 templates = Jinja2Templates(directory="app/templates")
 
+
+@router.get("/list", name="document_list")
+async def list_documents(request: Request, q: Optional[str] = None):
+    """Страница со списком всех документов с поиском"""
+    documents = get_document_list(search_query=q)
+    logger.info("Отправлен запрос на получение Списка документов")
+    return templates.TemplateResponse(
+        "list.html",
+        {"request": request, "documents": documents, "search_query": q}
+    )
 
 @router.get("/d/{doc_id}", name="document_short_link")
 async def document_short_link(doc_id: str, request: Request):

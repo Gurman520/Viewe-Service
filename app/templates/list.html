@@ -23,26 +23,45 @@
         </div>
     </div>
     
-    {% if documents %}
-        <div class="list-group">
-            {% for doc in documents %}
-                <a href="{{ url_for('view_document', document_name=doc.file_name) }}" 
-                   class="list-group-item list-group-item-action">
-                    <h5>{{ doc.title }}</h5>
-                    {% if doc.description %}
-                        <p class="mb-1">{{ doc.description }}</p>
-                    {% endif %}
-                    {% if search_query %}
-                        <small class="text-muted">Найдено в списке</small>
-                    {% endif %}
-                </a>
-            {% endfor %}
+    <div class="accordion" id="documentsAccordion">
+        {% for group, docs in documents.items() %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading{{ loop.index }}">
+                <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" 
+                        type="button" 
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#collapse{{ loop.index }}" 
+                        aria-expanded="{{ 'true' if loop.first else 'false' }}" 
+                        aria-controls="collapse{{ loop.index }}">
+                    {{ group }} <span class="badge bg-secondary ms-2">{{ docs|length }}</span>
+                </button>
+            </h2>
+            <div id="collapse{{ loop.index }}" 
+                 class="accordion-collapse collapse {% if loop.first %}show{% endif %}" 
+                 aria-labelledby="heading{{ loop.index }}" 
+                 data-bs-parent="#documentsAccordion">
+                <div class="accordion-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for doc in docs %}
+                        <a href="{{ url_for('view_document', document_name=doc.file_name) }}" 
+                           class="list-group-item list-group-item-action">
+                            <h5 class="mb-1">{{ doc.title }}</h5>
+                            {% if doc.description %}
+                                <p class="mb-1 text-muted">{{ doc.description }}</p>
+                            {% endif %}
+                            {% if doc.file_name + '.md' in DOCUMENT_PASSWORDS %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-lock-fill"></i> Protected
+                                </span>
+                            {% endif %}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
-    {% elif search_query %}
-        <div class="alert alert-warning">
-            No documents found matching your search "{{ search_query }}"
-        </div>
-    {% endif %}
+        {% endfor %}
+    </div>
 
     <script>
         function validateSearch() {
