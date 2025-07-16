@@ -1,0 +1,68 @@
+.accordion-button:not(.collapsed) {
+    background-color: #f8f9fa;
+    color: #212529;
+    box-shadow: none;
+}
+.accordion-button:focus {
+    box-shadow: none;
+    border-color: rgba(0,0,0,.125);
+}
+.accordion-item {
+    margin-bottom: 10px;
+    border-radius: 5px !important;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,.125);
+}
+.document-content img {
+    max-width: 100%;
+    height: auto;
+    margin: 1rem 0;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+}
+.document-content img.wiki-image {
+    display: block;
+    margin: 1rem auto;
+    max-height: 400px;
+}
+.file-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    text-decoration: none;
+    border: 1px solid #dee2e6;
+    margin: 0.25rem 0;
+}
+.file-link:hover {
+    background-color: #e9ecef;
+}
+pre {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.25rem;
+}
+hr {
+  border: none;
+  border-top: 3px double #333;
+  color: #333;
+  overflow: visible;
+  text-align: center;
+  height: 5px;
+}
+hr::after {
+  background: #fff;
+  padding: 0 4px;
+  position: relative;
+  top: -13px;
+}
+
+footer {
+    background-color: #f8f9fa;
+    padding: 20px;
+    text-align: center;
+    margin-top: 30px;
+    border-top: 1px solid #e9ecef;
+}

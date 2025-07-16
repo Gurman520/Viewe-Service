@@ -11,7 +11,6 @@ from app.puty import DOCUMENTS_DIR, IMAGES_DIR, ALLOWED_FILE_EXTENSIONS
 from app.logic import get_document_list, render_markdown, load_document_without_password
 from app.security import get_document_name_from_token
 from app.logger import logger
-from json import dumps
 
 
 router = APIRouter()

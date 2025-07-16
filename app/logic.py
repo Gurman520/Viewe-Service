@@ -16,12 +16,14 @@ def load_document_without_password(file_path: Path):
     """Загружает документ, удаляя пароль из метаданных"""
     with open(file_path, 'r', encoding='utf-8') as f:
         post = load(f)
+        logger.info("Очистка пароля из методанных")
         # Создаем копию метаданных без пароля
         clean_metadata = {k: v for k, v in post.metadata.items() if k != 'password'}
         post.metadata = clean_metadata
         return post
 
 def check_password(credentials: HTTPBasicCredentials, correct_password: str):
+    logger.info("Проверк пароля")
     is_correct_password = compare_digest(credentials.password, correct_password)
     return  is_correct_password
 
@@ -44,7 +46,6 @@ def get_document_list(search_query: Optional[str] = None) -> dict[str, list[dict
                 "description": post.get("description", ""),
                 "group": group  # Добавляем группу
             }
-            logger.info("Получил такое: " + str(doc_data))
 
             if doc_data["group"] not in documents.keys():
                 documents[doc_data["group"]] = list()
@@ -61,7 +62,7 @@ def get_document_list(search_query: Optional[str] = None) -> dict[str, list[dict
     sorted_groups = {}
     for group in sorted(documents.keys()):
         sorted_groups[group] = sorted(documents[group], key=lambda x: x["title"])
-    
+    logger.info("Подготовлен список документов")
     return sorted_groups
 
 def process_wiki_links(content: str) -> str:
@@ -98,6 +99,7 @@ def process_wiki_links(content: str) -> str:
     # Регулярка для поиска [[Имя Документа]]
     content = sub(r'\[\[([^\]\n]+)\]\]', replace_wiki_link, content)
 
+    logger.info("Подготовка ссылок завершена")
     return content
 
 def render_markdown(content: str) -> str:

@@ -1,15 +1,6 @@
-from fastapi import APIRouter, Request, Form, HTTPException, status, Cookie
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi import APIRouter, Request, HTTPException, Cookie
 from fastapi.templating import Jinja2Templates
-from frontmatter import load
-from re import finditer, findall
-from zipfile import ZipFile
 from typing import Optional
-from tempfile import NamedTemporaryFile
-from pathlib import Path
-from app.puty import DOCUMENTS_DIR, IMAGES_DIR, ALLOWED_FILE_EXTENSIONS
-# from app.logic import get_document_list, render_markdown, load_document_without_password
-from app.security import get_document_name_from_token
 from app.logger import logger
 from httpx import AsyncClient
 
@@ -48,10 +39,9 @@ async def document_router(
     try:
         async with AsyncClient() as client:
             response = await client.get(f"http://127.0.0.1:5031/api/document/{document_name}", cookies={"doc_session": doc_session})
-        logger.info("Jndtn^ " + str(response.status_code) + " - " + str(response.text))
         if response.status_code == 301 :
             doc = response.json()
-            logger.info("Ошибка 301")
+            logger.info("Ошибка 301 - отправляем на авторизацию")
             return templates.TemplateResponse(
                 "auth.html",
                 {"request": request, "document_name": doc["document_name"]}

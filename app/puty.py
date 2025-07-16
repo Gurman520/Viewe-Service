@@ -3,7 +3,7 @@ from pathlib import Path
 
 # Настройка путей
 BASE_DIR = Path(__file__).parent
-CONTENT_DIR = Path("C:\\Users\\roman\\Documents\\work-house")
+CONTENT_DIR = Path("T:\\Sulima\\work-house")
 DOCUMENTS_DIR = CONTENT_DIR / "База знаний"
 IMAGES_DIR = CONTENT_DIR / "Вложения"
 

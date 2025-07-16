@@ -1,6 +1,6 @@
 import logging
 from logging.handlers import RotatingFileHandler
-from pythonjsonlogger import jsonlogger  # (опционально)
+from pythonjsonlogger import jsonlogger
 from typing import Optional, Dict, Any
 
 class AppLogger:

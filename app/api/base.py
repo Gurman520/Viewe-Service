@@ -3,11 +3,10 @@ from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 
-
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
-@router.get("/")
+@router.get("/view")
 async def home(request: Request):
     """редирект"""
     return RedirectResponse("/view/list")
