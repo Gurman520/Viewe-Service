@@ -33,7 +33,7 @@
                         data-bs-target="#collapse{{ loop.index }}" 
                         aria-expanded="{{ 'true' if loop.first else 'false' }}" 
                         aria-controls="collapse{{ loop.index }}">
-                    {{ group }} <span class="badge bg-secondary ms-2">{{ docs|length }}</span>
+                    {{ group }} <span class="badge custom-badge bg-secondary ms-2">{{ docs|length }}</span>
                 </button>
             </h2>
             <div id="collapse{{ loop.index }}" 
@@ -57,7 +57,7 @@
         </div>
         {% endfor %}
         <footer>
-            <p>&copy; 2025 Сулима Р.И. | ГАУЗ ККБСМП Все права защищены. </p>
+            <p>&copy; 2025 ГАУЗ ККБСМП | Сулима Р.И. Все права защищены. </p>
         </footer>
     </div>
 

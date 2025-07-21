@@ -94,7 +94,7 @@ def process_wiki_links(content: str) -> str:
         doc_name = match.group(1)
         # Экранируем специальные символы в URL
         encoded_name = doc_name.replace(' ', '_')
-        return f'<a href="/api/document/doc/{encoded_name}" class="wiki-link">{doc_name}</a>'
+        return f'<a href="/view/{encoded_name}" class="wiki-link">{doc_name}</a>'
     
     # Регулярка для поиска [[Имя Документа]]
     content = sub(r'\[\[([^\]\n]+)\]\]', replace_wiki_link, content)

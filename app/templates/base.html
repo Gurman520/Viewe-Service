@@ -10,11 +10,19 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('document_list') }}">Внутренняя документация</a>
+    <div class="header">
+        <div class="logoBlock">
+          <img class="logo" src="/static/logo.jpg" alt="Логотип">
+          <div class="logoText">
+            <p>ГАУЗ ККБСМБ им. Подгорбунского</p>
+            <p class="portalName">Корпоративный портал</p>
+          </div>
         </div>
-    </nav>
+
+        <div class="tabs">
+            <a href="{{ url_for('document_list') }}" class="tab active">Документация</a>
+        </div>
+    </div>
     
     <div class="container">
         {% block content %}{% endblock %}
