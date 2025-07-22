@@ -3,9 +3,11 @@ from pathlib import Path
 
 # Настройка путей
 BASE_DIR = Path(__file__).parent
-CONTENT_DIR = Path("/work-house")
+# CONTENT_DIR = Path("/work-house")
+CONTENT_DIR = Path("T:/Sulima/work-house")
 DOCUMENTS_DIR = CONTENT_DIR / "База знаний"
 IMAGES_DIR = CONTENT_DIR / "Вложения"
+PORT = 5031  # Порт на котором работает приложение
 
 # Разрешенные расширения файлов
 ALLOWED_FILE_EXTENSIONS = {

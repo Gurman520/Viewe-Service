@@ -47,10 +47,10 @@ pip install -r requirements.txt
 ## Запуск
 
 ``` bash
-uvicorn app.main:app --reload
+uvicorn app.main:app --host 0.0.0.0 --port 5031
 ```
 
-Сервис будет доступен по адресу: `http://localhost:8000`
+Сервис будет доступен по адресу: `http://localhost:5031`
 
 ## Использование
 
@@ -65,4 +65,8 @@ IMAGES_DIR = CONTENT_DIR / "Вложения"
 3. Укажите путь до папки со всеми файлами MD
 ```Python
 DOCUMENTS_DIR = CONTENT_DIR / "База знаний"
+```
+4. Укажите номер порта, на котром будет работать сервис, так как это необходимо для корректной работы всего сервиса.
+```Python
+PORT = 5031
 ```

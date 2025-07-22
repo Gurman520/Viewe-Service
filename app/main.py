@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(
     title="Markdown Viewer",
     description="Сервис отображения документации созданной в Obsidian",
-    version="0.0.9")
+    version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,

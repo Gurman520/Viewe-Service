@@ -7,13 +7,14 @@ from secrets import compare_digest
 from fastapi.security import HTTPBasicCredentials
 from pathlib import Path
 from app.logger import logger
+import os
 
 
 DEFAULT_GROUP = "Без группы"  # Группа по умолчанию
 
 
 def load_document_without_password(file_path: Path):
-    """Загружает документ, удаляя пароль из метаданных"""
+    """Удаление пароля из метаданных"""
     with open(file_path, 'r', encoding='utf-8') as f:
         post = load(f)
         logger.info("Очистка пароля из методанных")
@@ -23,7 +24,8 @@ def load_document_without_password(file_path: Path):
         return post
 
 def check_password(credentials: HTTPBasicCredentials, correct_password: str):
-    logger.info("Проверк пароля")
+    """Функция проверки корректности пароля"""
+    logger.info("Проверка пароля")
     is_correct_password = compare_digest(credentials.password, correct_password)
     return  is_correct_password
 
@@ -94,7 +96,7 @@ def process_wiki_links(content: str) -> str:
         doc_name = match.group(1)
         # Экранируем специальные символы в URL
         encoded_name = doc_name.replace(' ', '_')
-        return f'<a href="/view/{encoded_name}" class="wiki-link">{doc_name}</a>'
+        return f'<br/> <a href="/view/{encoded_name}" class="wiki-link">{doc_name}</a>'
     
     # Регулярка для поиска [[Имя Документа]]
     content = sub(r'\[\[([^\]\n]+)\]\]', replace_wiki_link, content)
@@ -113,5 +115,15 @@ def render_markdown(content: str) -> str:
         "tables",
         "footnotes",
         "toc",
+        "extra",
     ]
     return markdown(processed_content, extensions=extensions)
+
+def check_doc(directory_path = DOCUMENTS_DIR) -> bool:
+    """Проверка существования Директории"""
+    if os.path.exists(directory_path):
+        logger.info(f"Дирректория '{directory_path}' существует.")
+        return True
+    
+    logger.info(f"Дирректория '{directory_path}' отсутствует.")
+    return False

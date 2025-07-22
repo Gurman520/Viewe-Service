@@ -18,6 +18,7 @@ TOKEN_EXPIRE = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
 @router.post("/verify_token")
 async def verify_token(request: Request):
+    """Эндпоинт пверификации JWT токена"""
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         raise HTTPException(
@@ -36,6 +37,7 @@ async def authenticate_document(
     response: Response,
     credentials: HTTPBasicCredentials = Depends(security)
 ):
+    """Проверка авторизации на документе"""
     original_name = document_name.replace('_', ' ')
     logger.info("Имя документа: | " + document_name)
     md_file = DOCUMENTS_DIR / f"{original_name}.md"

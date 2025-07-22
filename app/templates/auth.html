@@ -7,6 +7,20 @@
     <link rel="stylesheet" href="/static/auth_style.css">
 </head>
 <body>
+    <div class="header">
+        <div class="logoBlock">
+          <img class="logo" src="/static/logo.jpg" alt="Логотип">
+          <div class="logoText">
+            <p>ГАУЗ ККБСМБ им. Подгорбунского</p>
+            <p class="portalName">Корпоративный портал</p>
+          </div>
+        </div>
+
+        <div class="tabs">
+            <a href="{{ url_for('document_list') }}" class="tab active">Документация</a>
+        </div>
+    </div>
+    
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-6">

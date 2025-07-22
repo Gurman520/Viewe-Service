@@ -129,3 +129,26 @@ a {
 .custom-badge.bg-secondary {
 background-color: #5662DE !important;
 }
+
+blockquote {
+    position: relative;
+    display: block;
+    padding: 15px 20px;
+    border-left: 4px solid #5662DE; /* Ярко-жёлтая линия */
+    background-color: transparent; /* Прозрачность */
+    color: #333;
+    font-style: italic;
+    font-weight: bold;
+    line-height: 1.5em;
+}
+
+blockquote::after { /* Пунктирная граница справа */
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 4px;
+    height: 100%;
+    border-right: dashed 2px #5662DE;
+}

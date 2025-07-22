@@ -1,8 +1,8 @@
 function validateSearch() {
     const searchInput = document.getElementById('searchInput');
-    if (searchInput.value.trim() === ' ') {
+    if (searchInput.value === ' ') {
         // Если поле поиска пустое, просто перезагружаем страницу
-        window.location.href = "{{ url_for('document_list') }}";
+        window.location.href = "/view/list";
         return false;
     }
     return true;
@@ -14,9 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchButton = document.getElementById('searchButton');
     
     searchInput.addEventListener('input', function() {
-        searchButton.disabled = this.value.trim() === '';
+        searchButton.disabled = this.value === '';
     });
     
     // Инициализация состояния кнопки при загрузке
-    searchButton.disabled = searchInput.value.trim() === '';
+    searchButton.disabled = searchInput.value === '';
 });
