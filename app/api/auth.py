@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException,  Depends, status, Response
 from frontmatter import load
-from app.puty import DOCUMENTS_DIR
+from app.puty import Config
 from fastapi.security import HTTPBasicCredentials
 from datetime import timedelta
 from fastapi.security import HTTPBasic
@@ -40,7 +40,7 @@ async def authenticate_document(
     """Проверка авторизации на документе"""
     original_name = document_name.replace('_', ' ')
     logger.info("Имя документа: | " + document_name)
-    md_file = DOCUMENTS_DIR / f"{original_name}.md"
+    md_file = Config.DOCUMENTS_DIR / f"{original_name}.md"
     
     with open(md_file, "r", encoding="utf-8") as f:
         post = load(f)

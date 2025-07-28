@@ -1,16 +1,26 @@
+from dotenv import load_dotenv
 from pathlib import Path
+from os import getenv
 
 
-# Настройка путей
-BASE_DIR = Path(__file__).parent
-# CONTENT_DIR = Path("/work-house")
-CONTENT_DIR = Path("T:/Sulima/work-house")
-DOCUMENTS_DIR = CONTENT_DIR / "База знаний"
-IMAGES_DIR = CONTENT_DIR / "Вложения"
-PORT = 5031  # Порт на котором работает приложение
+class Conf(object):
+    BASE_DIR = Path(__file__).parent
+    CONTENT_DIR = ""
+    DOCUMENTS_DIR = ""
+    IMAGES_DIR = ""
+    PORT = ""
+    ALLOWED_FILE_EXTENSIONS = {
+        '.txt', '.bat', '.sh', '.csv', '.json', '.exe',
+        '.xml', '.pdf', '.doc', '.docx', '.xls', '.xlsx'
+    }
 
-# Разрешенные расширения файлов
-ALLOWED_FILE_EXTENSIONS = {
-    '.txt', '.bat', '.sh', '.csv', '.json', '.exe',
-    '.xml', '.pdf', '.doc', '.docx', '.xls', '.xlsx'
-}
+    def __init__(self):
+        load_dotenv()
+
+        self.CONTENT_DIR = Path(getenv('CONTENT_DIR'))
+        self.DOCUMENTS_DIR = self.CONTENT_DIR / getenv('DOCUMENTS_DIR')
+        self.IMAGES_DIR = self.CONTENT_DIR / getenv('IMAGES_DIR')
+        self.PORT = int(getenv('PORT'))
+
+
+Config = Conf()

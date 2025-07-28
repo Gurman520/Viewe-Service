@@ -3,7 +3,7 @@ from fastapi.templating import Jinja2Templates
 from typing import Optional
 from app.logger import logger
 from httpx import AsyncClient
-from app.puty import PORT
+from app.puty import Config
 
 
 router = APIRouter()
@@ -17,7 +17,7 @@ async def list_documents(request: Request, q: Optional[str] = None):
     """Страница со списком всех документов с поиском"""
     try:
         async with AsyncClient() as client:
-            response = await client.get(f"http://127.0.0.1:{PORT}/api/document/list")
+            response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/list")
         
         if response.is_success:
             doc = response.json()
@@ -40,7 +40,7 @@ async def document_router(
     """Получение страницы с документом"""
     try:
         async with AsyncClient() as client:
-            response = await client.get(f"http://127.0.0.1:{PORT}/api/document/{document_name}", cookies={"doc_session": doc_session})
+            response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/{document_name}", cookies={"doc_session": doc_session})
         if response.status_code == 301 :
             doc = response.json()
             logger.info("Ошибка 301 - отправляем на авторизацию")
@@ -75,7 +75,7 @@ async def isolated_view(request: Request, document_name: str):
     """Изолированный просмотр документа без навигации"""
     try:
         async with AsyncClient() as client:
-            response = await client.get(f"http://127.0.0.1:{PORT}/api/document/isolated_view/{document_name}")
+            response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/isolated_view/{document_name}")
         
         if response.status_code == 200:
             logger.info("Отправлен документ для изолированного просмотра - " + str(document_name))

@@ -2,7 +2,7 @@ from re import sub
 from markdown import markdown
 from typing import Optional
 from frontmatter import load
-from app.puty import DOCUMENTS_DIR, IMAGES_DIR, ALLOWED_FILE_EXTENSIONS
+from app.puty import Config
 from secrets import compare_digest
 from fastapi.security import HTTPBasicCredentials
 from pathlib import Path
@@ -33,7 +33,7 @@ def get_document_list(search_query: Optional[str] = None) -> dict[str, list[dict
     """Возвращает документы сгруппированные по категориям"""
     documents = dict()
     
-    for md_file in DOCUMENTS_DIR.glob("*.md"):
+    for md_file in Config.DOCUMENTS_DIR.glob("*.md"):
         with open(md_file, "r", encoding="utf-8") as f:
             post = load(f)
 
@@ -73,13 +73,13 @@ def process_wiki_links(content: str) -> str:
     def replace_match(match):
         """Подготовливает ссылки на скачивание файлов"""
         filename = match.group(1)
-        file_path = IMAGES_DIR / filename
+        file_path = Config.IMAGES_DIR / filename
         
         # Если файл существует и его расширение разрешено
-        if file_path.exists() and file_path.suffix.lower() in ALLOWED_FILE_EXTENSIONS:
+        if file_path.exists() and file_path.suffix.lower() in Config.ALLOWED_FILE_EXTENSIONS:
             return f'<a href="/files/{filename}" class="file-link" download>{filename}</a>'
         # Если это изображение
-        elif (IMAGES_DIR / filename).exists():
+        elif (Config.IMAGES_DIR / filename).exists():
             return f'<img src="/images/{filename}" alt="{filename}" class="wiki-image">'
         # Если файл не найден
         else:
@@ -119,7 +119,7 @@ def render_markdown(content: str) -> str:
     ]
     return markdown(processed_content, extensions=extensions)
 
-def check_doc(directory_path = DOCUMENTS_DIR) -> bool:
+def check_doc(directory_path = Config.DOCUMENTS_DIR) -> bool:
     """Проверка существования Директории"""
     if os.path.exists(directory_path):
         logger.info(f"Дирректория '{directory_path}' существует.")

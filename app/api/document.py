@@ -7,7 +7,7 @@ from zipfile import ZipFile
 from typing import Optional
 from tempfile import NamedTemporaryFile
 from pathlib import Path
-from app.puty import DOCUMENTS_DIR, IMAGES_DIR, ALLOWED_FILE_EXTENSIONS
+from app.puty import Config
 from app.logic import get_document_list, render_markdown, load_document_without_password
 from app.security import get_document_name_from_token
 from app.logger import logger
@@ -31,7 +31,7 @@ async def list_documents(request: Request, q: Optional[str] = None):
 async def document_short_link(doc_id: str, request: Request):
     """Короткая ссылка на документ"""
     original_name = doc_id.replace('_', ' ')
-    md_file = DOCUMENTS_DIR / f"{original_name}.md"
+    md_file = Config.DOCUMENTS_DIR / f"{original_name}.md"
     
     if not md_file.exists():
         raise HTTPException(status_code=404, detail="Document not found")
@@ -51,7 +51,7 @@ async def search_documents(request: Request, search_query: str = Form(...)):
 async def download_document_with_assets(document_name: str):
     """Скачивание документа со всеми вложениями в ZIP-архиве"""
     original_name = document_name.replace('_', ' ')
-    md_file = DOCUMENTS_DIR / f"{original_name}.md"
+    md_file = Config.DOCUMENTS_DIR / f"{original_name}.md"
     logger.info("Пытаемся скачать файл: |" + str(md_file))
     
     if not md_file.exists():
@@ -75,8 +75,8 @@ async def download_document_with_assets(document_name: str):
                 # Добавляем найденные файлы
                 for filename in attachments:
                     # Проверяем существование файла в images или files
-                    if (IMAGES_DIR / filename).exists():
-                        zipf.write(IMAGES_DIR / filename, arcname=f"images/{filename}")
+                    if (Config.IMAGES_DIR / filename).exists():
+                        zipf.write(Config.IMAGES_DIR / filename, arcname=f"images/{filename}")
         
         # Используем FileResponse в режиме потоковой передачи
         response = FileResponse(
@@ -98,13 +98,13 @@ async def download_document_with_assets(document_name: str):
 @router.get("/download/{filename:path}", name="download_file")
 async def download_file(filename: str):
     """Скачивание файла"""
-    file_path = IMAGES_DIR / filename
+    file_path = Config.IMAGES_DIR / filename
 
     # Проверка безопасности
     if ".." in filename or not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
     
-    if file_path.suffix.lower() not in ALLOWED_FILE_EXTENSIONS:
+    if file_path.suffix.lower() not in Config.ALLOWED_FILE_EXTENSIONS:
         raise HTTPException(status_code=403, detail="File type not allowed")
     
     return FileResponse(
@@ -117,7 +117,7 @@ async def download_file(filename: str):
 async def create_isolated_view(request: Request, document_name: str):
     """Изолированный просмотр документа без навигации"""
     original_name = document_name.replace('_', ' ')
-    md_file = DOCUMENTS_DIR / f"{original_name}.md"
+    md_file = Config.DOCUMENTS_DIR / f"{original_name}.md"
     
     if not md_file.exists():
         raise HTTPException(status_code=404, detail="Document not found")
@@ -143,7 +143,7 @@ async def document_router(
 ):
     logger.info("Запрошен файл: " + document_name)
     original_name = document_name.replace('_', ' ')
-    md_file = DOCUMENTS_DIR / f"{original_name}.md"
+    md_file = Config.DOCUMENTS_DIR / f"{original_name}.md"
     
     if not md_file.exists():
         logger.info("Запрошенный файл - " + document_name + " не найден")
@@ -165,7 +165,7 @@ async def view_document(
     doc_session: str = Cookie(default=None)
 ):
     original_name = document_name.replace('_', ' ')
-    md_file = DOCUMENTS_DIR / f"{original_name}.md"
+    md_file = Config.DOCUMENTS_DIR / f"{original_name}.md"
     
     if not md_file.exists():
         raise HTTPException(status_code=404, detail="Document not found")
@@ -210,7 +210,7 @@ async def get_document_response(md_file: Path, original_name: str):
     attachments = []
     for match in finditer(r'!\[\[([^\]\n]+)\]\]', post.content):
         filename = match.group(1)
-        if (IMAGES_DIR / filename).exists() or (IMAGES_DIR / filename).exists():
+        if (Config.IMAGES_DIR / filename).exists() or (Config.IMAGES_DIR / filename).exists():
             attachments.append(filename)
     doc = {
         "title": post.get("title", original_name),

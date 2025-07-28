@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from .api import base, document, auth, viewer
-from app.puty import IMAGES_DIR
+from app.puty import Config
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -18,8 +18,8 @@ app.add_middleware(
 )
 
 # Подключение статических файлов
-app.mount("/images", StaticFiles(directory=IMAGES_DIR), name="images")
-app.mount("/files", StaticFiles(directory=IMAGES_DIR), name="files")
+app.mount("/images", StaticFiles(directory=Config.IMAGES_DIR), name="images")
+app.mount("/files", StaticFiles(directory=Config.IMAGES_DIR), name="files")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(document.router, prefix="/api/document", tags=["document"])
