@@ -72,7 +72,12 @@ def process_wiki_links(content: str) -> str:
 
     def replace_match(match):
         """Подготовливает ссылки на скачивание файлов"""
-        filename = match.group(1)
+        text = match.group(1)
+        text = text.split('|')
+        filename = text[0].strip()
+        l = ''
+        if len(text) > 1:
+            l = text[1].strip()
         file_path = Config.IMAGES_DIR / filename
         
         # Если файл существует и его расширение разрешено
@@ -80,7 +85,10 @@ def process_wiki_links(content: str) -> str:
             return f'<a href="/files/{filename}" class="file-link" download>{filename}</a>'
         # Если это изображение
         elif (Config.IMAGES_DIR / filename).exists():
-            return f'<img src="/images/{filename}" alt="{filename}" class="wiki-image">'
+            if l == 'L':
+                return f'<br> <img src="/images/{filename}" alt="{filename}" class="wiki-image-left"> <br>'
+            else:
+                return f'<br> <img src="/images/{filename}" alt="{filename}" class="wiki-image"> <br>'
         # Если файл не найден
         else:
             return f'<span class="text-danger">[File not found: {filename}]</span>'
@@ -111,6 +119,7 @@ def render_markdown(content: str) -> str:
     
     extensions = [
         "fenced_code",
+        "pymdownx.tasklist",
         "codehilite",
         "tables",
         "footnotes",

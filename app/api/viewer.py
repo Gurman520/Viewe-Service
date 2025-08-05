@@ -11,7 +11,6 @@ router = APIRouter()
 # Шаблоны
 templates = Jinja2Templates(directory="app/templates")
 
-
 @router.get("/list", name="document_list")
 async def list_documents(request: Request, q: Optional[str] = None):
     """Страница со списком всех документов с поиском"""
@@ -62,6 +61,13 @@ async def document_router(
                 "auth.html",
                 {"request": request, "document_name": document_name}
             )
+        elif response.status_code == 404:
+            logger.info("Ошибка 404 - Документ не найден")
+            return templates.TemplateResponse(
+            "404.html",
+            {"request": request},
+            status_code=404
+        )
         else:
             logger.critical("Ошикбка " + str(response.text))
             raise HTTPException(status_code=response.status_code, detail=f"External API returned error: {response.text}")

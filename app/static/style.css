@@ -13,18 +13,27 @@
     overflow: hidden;
     border: 1px solid rgba(0,0,0,.125);
 }
-.document-content img {
-    max-width: 100%;
-    height: auto;
+
+/* Настройка для изображений */
+.document-content .wiki-image {
+    max-width: 80%;
+    max-height: 80%;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    cursor: zoom-in;
+    display: block;
+    margin: 1rem auto;
+}
+
+.document-content .wiki-image-left {
+    max-width: 80%;
+    max-height: 80%;
     margin: 1rem 0;
     border: 1px solid #dee2e6;
     border-radius: 0.25rem;
+    cursor: zoom-in;
 }
-.document-content img.wiki-image {
-    display: block;
-    margin: 1rem auto;
-    max-height: 400px;
-}
+
 .file-link {
     display: inline-flex;
     align-items: center;
@@ -185,12 +194,8 @@ pre[class*="language-"] {
   box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
 }
 
-/* Стиль для увеличения картинки */
-.wiki-image {
-  cursor: zoom-in;
-  transition: transform 0.3s;
-}
 
+/* Настройки для модального окна с изображением */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -206,13 +211,78 @@ pre[class*="language-"] {
 }
 
 .modal-image {
-  max-width: 90%;
-  max-height: 90%;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
-  transform: scale(0.95);
+  transform: scale(0.8);
   transition: transform 0.3s ease-out;
 }
 
 .modal-overlay.active .modal-image {
   transform: scale(1);
+}
+
+/* Основные стили для списка задач */
+.task-list {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 1em 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.task-list-item {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+/* Стилизация чекбоксов */
+.task-list-item input[type="checkbox"] {
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid #5c6bc0;
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+/* Стиль для отмеченных чекбоксов */
+.task-list-item input[type="checkbox"]:checked {
+  background-color: #5c6bc0;
+  border-color: #5c6bc0;
+}
+
+/* Галочка в отмеченных чекбоксах */
+.task-list-item input[type="checkbox"]:checked::before {
+  content: "✓";
+  position: absolute;
+  color: white;
+  font-size: 14px;
+  left: 2px;
+  top: -3px;
+}
+
+/* Стиль для отключенных чекбоксов */
+.task-list-item input[type="checkbox"]:disabled {
+  opacity: 1; /* Чтобы не выглядели блекло */
+  cursor: default;
+}
+
+/* Дополнительные стили для текста задач */
+.task-list-item {
+  color: #333;
+}
+
+/* Стиль для завершенных задач */
+.task-list-item input[type="checkbox"]:checked + * {
+  color: #666;
+  text-decoration: line-through;
 }
