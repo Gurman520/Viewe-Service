@@ -69,6 +69,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Обработчики для картинок
+    document.querySelectorAll('.wiki-image-left').forEach(img => {
+        img.addEventListener('click', () => {
+            modalImg.src = img.src;
+            modalImg.alt = img.alt;
+            overlay.classList.add('active');
+            overlay.style.display = 'flex';
+        });
+    });
+
     // Закрытие по клику
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay || e.target === modalImg) {
