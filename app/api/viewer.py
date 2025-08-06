@@ -57,19 +57,18 @@ async def document_router(
             )
         elif response.status_code == 401:
             logger.info("Ошибка 401 - Пользователь не авторизован")
-            return templates.TemplateResponse(
-                "auth.html",
-                {"request": request, "document_name": document_name}
-            )
+            raise HTTPException(status_code=401, detail=str(document_name))
         elif response.status_code == 404:
             logger.info("Ошибка 404 - Документ не найден")
-            raise HTTPException(status_code=404, detail=str("Документ с таким именем не найден"))
+            raise HTTPException(status_code=404, detail=str(document_name))
         else:
             logger.critical("Ошикбка " + str(response.text))
             raise HTTPException(status_code=response.status_code, detail=f"External API returned error: {response.text}")
     except HTTPException as exc:
         if exc.status_code == 404:
             raise HTTPException(status_code=404, detail=str(exc.detail))
+        if exc.status_code == 401:
+            raise HTTPException(status_code=401, detail=str(exc.detail))
         else:
             raise HTTPException(status_code=500, detail=str(exc.detail))
     except Exception as e:

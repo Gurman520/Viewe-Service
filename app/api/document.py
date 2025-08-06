@@ -158,7 +158,11 @@ async def document_router(
             return JSONResponse(content={"document_name": document_name}, status_code=401)
         
     logger.info("Отправляем запрос далее")
-    return await view_document(document_name, doc_session)
+    try:
+        return await view_document(document_name, doc_session)
+    except HTTPException as exp:
+        logger.debug(f"Получена ошибка при обработке - {exp.status_code} - {exp.detail}")
+        return JSONResponse(content=exp.detail, status_code=exp.status_code)
 
 async def view_document(
     document_name: str,
@@ -188,15 +192,14 @@ async def view_document(
 
                 if str(token_doc_name) != original_name:
                     raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        status_code=401,
                         detail="Token not valid for this document",
                     )
             except HTTPException:
                 logger.info("Не соответсвие файлов, отправляем на повторную авторизацию")
                 raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        status_code=401,
                         detail="Not authenticated",
-                        headers={"WWW-Authenticate": "Basic"},
                     )
     logger.info("Начинаем формировать итоговый ответ")
     return await get_document_response(md_file, original_name)

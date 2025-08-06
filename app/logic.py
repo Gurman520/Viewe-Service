@@ -37,10 +37,15 @@ def get_document_list(search_query: Optional[str] = None) -> dict[str, list[dict
         with open(md_file, "r", encoding="utf-8") as f:
             post = load(f)
 
-            # Безопасное получение группы
+            # Получение группы
             group = post.get("group", DEFAULT_GROUP)
             if not group or group.strip() == "":
                 group = DEFAULT_GROUP
+
+            # Получение факта скрытности
+            hide = post.get("hide", "")
+            if hide.strip() == "True":
+                continue
             
             doc_data = {
                 "file_name": md_file.stem,
@@ -119,6 +124,7 @@ def render_markdown(content: str) -> str:
     
     extensions = [
         "fenced_code",
+        "nl2br",
         "pymdownx.tasklist",
         "codehilite",
         "tables",

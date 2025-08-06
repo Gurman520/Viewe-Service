@@ -30,14 +30,12 @@ def verify_jwt_token(token: str) -> Dict:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token expired",
-            headers={"WWW-Authenticate": "Bearer"},
         )
     except jwt.PyJWTError:
         logger.warning("Не корректный ТОКЕН!")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token",
-            headers={"WWW-Authenticate": "Bearer"},
         )
 
 def get_document_name_from_token(token: str) -> str:

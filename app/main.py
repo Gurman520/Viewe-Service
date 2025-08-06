@@ -48,3 +48,8 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
             {"request": request},
             status_code=404
         )
+    elif exc.status_code == 401:
+        return templates.TemplateResponse(
+            "auth.html",
+            {"request": request, "document_name": exc.detail}
+        )
