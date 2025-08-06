@@ -63,14 +63,15 @@ async def document_router(
             )
         elif response.status_code == 404:
             logger.info("Ошибка 404 - Документ не найден")
-            return templates.TemplateResponse(
-            "404.html",
-            {"request": request},
-            status_code=404
-        )
+            raise HTTPException(status_code=404, detail=str("Документ с таким именем не найден"))
         else:
             logger.critical("Ошикбка " + str(response.text))
             raise HTTPException(status_code=response.status_code, detail=f"External API returned error: {response.text}")
+    except HTTPException as exc:
+        if exc.status_code == 404:
+            raise HTTPException(status_code=404, detail=str(exc.detail))
+        else:
+            raise HTTPException(status_code=500, detail=str(exc.detail))
     except Exception as e:
         logger.critical("Ошибка " + str(e))
         raise HTTPException(status_code=500, detail=str(e))
@@ -93,5 +94,10 @@ async def isolated_view(request: Request, document_name: str):
             )
         else:
             raise HTTPException(status_code=response.status_code, detail=f"External API returned error: {response.text}")
+    except HTTPException as exc:
+        if exc.status_code == 404:
+            raise HTTPException(status_code=404, detail=str(exc.detail))
+        else:
+            raise HTTPException(status_code=500, detail=str(exc.detail))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

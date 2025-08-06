@@ -32,12 +32,19 @@ app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(viewer.router, prefix="/view", tags=["viewed page"])
 app.include_router(base.router, tags=["base"])
 
-# Обработчик 404 ошибки
-@app.exception_handler(404)
-async def custom_404_handler(request: Request, exc: HTTPException):
+# Кастомный обработчик HTTP Ошибок 
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException):
     logger.debug(f'Запрос пришел {request.url.path}')
-    return templates.TemplateResponse(
-        "404.html",
-        {"request": request},
-        status_code=404
-    )
+    if exc.status_code == 500:
+        return templates.TemplateResponse(
+            "500.html",
+            {"request": request, "error_detail": exc.detail},
+            status_code=500,
+        )
+    elif exc.status_code == 404:
+        return templates.TemplateResponse(
+            "404.html",
+            {"request": request},
+            status_code=404
+        )
