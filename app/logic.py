@@ -125,6 +125,7 @@ def render_markdown(content: str) -> str:
         "footnotes",
         "toc",
         "extra",
+        "pymdownx.mark",
     ]
     return markdown(processed_content, extensions=extensions)
 
