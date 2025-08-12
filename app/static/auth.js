@@ -15,11 +15,6 @@ document.getElementById('authForm').addEventListener('submit', async (e) => {
     console.log(encodedPath);
     const passwordInput = document.querySelector('#password'); // Пароль из формы
     const passwordValue = passwordInput.value.trim();          // Убираем пробелы
-
-    let utPass = unescape(passwordValue)
-
-    console.log(utPass)
-
     // Функция для корректного кодирования UTF-8 → Base64
     const utf8ToBase64 = (str) => {
         return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, 
@@ -32,7 +27,6 @@ document.getElementById('authForm').addEventListener('submit', async (e) => {
     const response = await fetch(`/api/auth/${encodedPath}`, {
         method: 'POST',
         headers: {
-            // 'Authorization': 'Basic ' + btoa(`user:${utPass}`),
             'Authorization': 'Basic ' + utf8ToBase64(`user:${passwordValue}`),
             'Content-Type': 'application/json'
         },
