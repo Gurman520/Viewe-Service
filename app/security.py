@@ -1,9 +1,10 @@
 import jwt
 import secrets
 from datetime import datetime, timedelta
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request
 from typing import Optional, Dict
 from app.logger import logger
+import base64
 
 
 # Генерация секретного ключа при первом запуске
@@ -43,3 +44,28 @@ def get_document_name_from_token(token: str) -> str:
     payload = verify_jwt_token(token)
     logger.info("Расшиврованный токен: \n" + str(payload))
     return payload.get("doc")
+
+async def parse_utf8_basic_auth(request: Request):
+    logger.info('Djitk')
+    auth_header = request.headers.get("Authorization")
+    logger.info(f'{auth_header}, а так же {auth_header.startswith("Basic ")}')
+    if not auth_header or not auth_header.startswith("Basic "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid auth header",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    
+    try:
+        # Декодируем Base64 → UTF-8
+        decoded = base64.b64decode(auth_header[6:]).decode("utf-8")
+        logger.info(f'{decoded}')
+        _, password = decoded.split(":", 1)  # Разделяем по первому ":"
+        logger.info(f'{password}')
+        return {"password": password}
+    except (UnicodeError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid UTF-8 in credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )

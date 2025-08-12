@@ -1,16 +1,13 @@
 from fastapi import APIRouter, Request, HTTPException,  Depends, status, Response
 from frontmatter import load
 from app.puty import Config
-from fastapi.security import HTTPBasicCredentials
 from datetime import timedelta
-from fastapi.security import HTTPBasic
-from app.security import create_jwt_token, verify_jwt_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from app.security import create_jwt_token, verify_jwt_token, ACCESS_TOKEN_EXPIRE_MINUTES, parse_utf8_basic_auth
 from app.logger import logger
 from app.logic import check_password
 
 
 router = APIRouter()
-security = HTTPBasic()
 
 # Настройки сессии
 SESSION_COOKIE_NAME = "doc_session"
@@ -35,8 +32,9 @@ async def verify_token(request: Request):
 async def authenticate_document(
     document_name: str,
     response: Response,
-    credentials: HTTPBasicCredentials = Depends(security)
+    credentials: dict = Depends(parse_utf8_basic_auth)
 ):
+    logger.debug('Получен запрос на авторизацию')
     """Проверка авторизации на документе"""
     original_name = document_name.replace('_', ' ')
     logger.info("Имя документа: | " + document_name)
@@ -46,6 +44,7 @@ async def authenticate_document(
         post = load(f)
         password = post.metadata.get("password")
         # Если документ защищен паролем
+        logger.debug('Будем запрашивать пароль')
         if password:
             if not check_password(credentials, password):
                 raise HTTPException(

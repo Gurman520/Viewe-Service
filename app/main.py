@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import HTTPException
 from .api import base, document, auth, viewer
@@ -13,7 +13,7 @@ templates = Jinja2Templates(directory="app/templates")
 app = FastAPI(
     title="Markdown Viewer",
     description="Сервис отображения документации созданной в Obsidian",
-    version="0.1.0")
+    version="0.1.3")
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,7 +35,7 @@ app.include_router(base.router, tags=["base"])
 # Кастомный обработчик HTTP Ошибок 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException):
-    logger.debug(f'Запрос пришел {request.url.path}')
+    logger.info(f'Запрос пришел {request.url.path}')
     if exc.status_code == 500:
         return templates.TemplateResponse(
             "500.html",
@@ -49,6 +49,8 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
             status_code=404
         )
     elif exc.status_code == 401:
+        if '/api/auth/' in request.url.path:
+            return Response(status_code=401, content="Incorrect password")
         return templates.TemplateResponse(
             "auth.html",
             {"request": request, "document_name": exc.detail}
