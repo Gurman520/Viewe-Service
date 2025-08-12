@@ -286,3 +286,16 @@ pre[class*="language-"] {
   color: #666;
   text-decoration: line-through;
 }
+
+.video-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.video-container video {
+  width: 50vw;
+  max-width: 800px;
+  height: auto;
+}

@@ -11,7 +11,8 @@ class Conf(object):
     PORT = ""
     ALLOWED_FILE_EXTENSIONS = {
         '.txt', '.bat', '.sh', '.csv', '.json', '.exe',
-        '.xml', '.pdf', '.doc', '.docx', '.xls', '.xlsx'
+        '.xml', '.pdf', '.doc', '.docx', '.xls', '.xlsx', 
+        '.mp4', '.avi'
     }
 
     def __init__(self):

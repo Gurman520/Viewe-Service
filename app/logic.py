@@ -23,10 +23,10 @@ def load_document_without_password(file_path: Path):
         post.metadata = clean_metadata
         return post
 
-def check_password(credentials: HTTPBasicCredentials, correct_password: str):
+def check_password(credentials: dict, correct_password: str):
     """Функция проверки корректности пароля"""
     logger.info("Проверка пароля")
-    is_correct_password = compare_digest(credentials.password, correct_password)
+    is_correct_password = compare_digest(credentials['password'], correct_password)
     return  is_correct_password
 
 def get_document_list(search_query: Optional[str] = None) -> dict[str, list[dict]]:
@@ -87,7 +87,15 @@ def process_wiki_links(content: str) -> str:
         
         # Если файл существует и его расширение разрешено
         if file_path.exists() and file_path.suffix.lower() in Config.ALLOWED_FILE_EXTENSIONS:
-            return f'<a href="/files/{filename}" class="file-link" download>{filename}</a>'
+            if file_path.suffix.lower() != '.mp4':
+                return f'<a href="/files/{filename}" class="file-link" download>{filename}</a>'
+            return f'<a href="/files/{filename}" class="file-link" download>{filename}</a>' + f'''
+        <div class="video-container">
+            <video  controls>
+              <source src="/files/{filename}" type="video/mp4">
+            </video>
+        </div>
+        '''
         # Если это изображение
         elif (Config.IMAGES_DIR / filename).exists():
             if l == 'L':
