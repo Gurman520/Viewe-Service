@@ -20,10 +20,10 @@ async def list_documents(request: Request, q: Optional[str] = None):
         
         if response.is_success:
             doc = response.json()
-            logger.info("Открываем страницу со списком инструкций")
+            logger.info(f"Открываем страницу со списком инструкций {Config.subgroup_list}")
             return templates.TemplateResponse(
                 "list.html",
-                {"request": request, "documents": doc["document"], "search_query": q}
+                {"request": request, "documents": doc["document"], "search_query": q, "subgroup": Config.subgroup_list}
             )
         else:
             raise HTTPException(status_code=response.status_code, detail=f"External API returned error: {response.text}")

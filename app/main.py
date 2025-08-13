@@ -55,3 +55,18 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
             "auth.html",
             {"request": request, "document_name": exc.detail}
         )
+
+
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+from app.logic import get_subgroup_list
+from datetime import datetime
+
+# Инициализация scheduler
+scheduler = BackgroundScheduler()
+scheduler.add_job(
+    get_subgroup_list,
+    trigger=IntervalTrigger(hours=10),
+    next_run_time = datetime.now()  # Запустить сразу при старте
+)
+scheduler.start()

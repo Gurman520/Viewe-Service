@@ -20,6 +20,26 @@
                     <button type="submit" class="btn btn-primary w-100" id="searchButton">Поиск</button>
                 </div>
             </form>
+            <br>
+            <div class="mb-3">
+                <label for="subgroupSelect" class="form-label">Подгруппа:</label>
+                <!-- <span title="Поясняющая информация" style="cursor: help">ⓘ</span> -->
+                <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title=
+                "Здесь отображаются подгруппы, которые содержат 3 и более документов в системе.
+                При выборе подгруппы, значение встанет в поле поиск и можно будет найти все документы относящиеся к данной подгруппе.">
+                    <i class="bi bi-info-circle" style="cursor: help"></i>
+                </span>
+                <select class="form-select" id="subgroupSelect" name="selected_item">
+                    {% if subgroup %}
+                        <option value="">Все подгруппы</option>
+                        {% for item in subgroup %}
+                            <option value="{{ item }}">{{ item }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option disabled>Список пуст</option>
+                    {% endif %}
+                </select>
+            </div>
         </div>
     </div>
     
@@ -46,8 +66,11 @@
                         <a href="{{ url_for('view_document', document_name=doc.file_name) }}" 
                            class="list-group-item list-group-item-action">
                             <h5 class="mb-1">{{ doc.title }}</h5>
+                            {% if doc.subgroup %}
+                                <p class="mb-1 text-muted">Подгруппа: {{ doc.subgroup }}</p>
+                            {% endif %}
                             {% if doc.description %}
-                                <p class="mb-1 text-muted">{{ doc.description }}</p>
+                                <p class="mb-2 text-muted">Описание: {{ doc.description }}</p>
                             {% endif %}
                         </a>
                         {% endfor %}

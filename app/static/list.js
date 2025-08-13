@@ -19,4 +19,31 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Инициализация состояния кнопки при загрузке
     searchButton.disabled = searchInput.value === '';
+
+    const selected = document.getElementById('subgroupSelect');
+    const quer = searchInput.value
+    
+    if (quer) {
+        for (let i = 0; i < selected.options.length; i++) {
+            if (selected.options[i].value === quer) {
+                selected.selectedIndex = i;
+                break;
+            }
+        }
+    }
+});
+
+document.getElementById('subgroupSelect').addEventListener('change', function() {
+    const selectedSubgroup = this.value;
+    const searchInput = document.getElementById('searchInput');
+
+    searchInput.value = selectedSubgroup;
+    if (selectedSubgroup != "") {
+        searchButton.disabled = false;
+    }
+    else if (selectedSubgroup != " ") {
+        searchInput.value = " "
+    }
+
+    console.log(selectedSubgroup)
 });

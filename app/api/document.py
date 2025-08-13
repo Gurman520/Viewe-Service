@@ -44,7 +44,7 @@ async def search_documents(request: Request, search_query: str = Form(...)):
     documents = get_document_list(search_query=search_query)
     return templates.TemplateResponse(
         "list.html",
-        {"request": request, "documents": documents, "search_query": search_query}
+        {"request": request, "documents": documents, "search_query": search_query, "subgroup": Config.subgroup_list}
     )
     
 @router.get("/{document_name}/download", name="download_document_with_assets")
@@ -225,4 +225,3 @@ async def get_document_response(md_file: Path, original_name: str):
         "document_attachments": attachments 
     }
     return JSONResponse(content=doc, status_code=200)
-

@@ -14,6 +14,7 @@ class Conf(object):
         '.xml', '.pdf', '.doc', '.docx', '.xls', '.xlsx', 
         '.mp4', '.avi'
     }
+    subgroup_list = list()
 
     def __init__(self):
         load_dotenv()
@@ -22,6 +23,9 @@ class Conf(object):
         self.DOCUMENTS_DIR = self.CONTENT_DIR / getenv('DOCUMENTS_DIR')
         self.IMAGES_DIR = self.CONTENT_DIR / getenv('IMAGES_DIR')
         self.PORT = int(getenv('PORT'))
+
+    def set_list(self, new_data: list):
+        self.subgroup_list = new_data.copy()
 
 
 Config = Conf()

@@ -4,13 +4,14 @@ from typing import Optional
 from frontmatter import load
 from app.puty import Config
 from secrets import compare_digest
-from fastapi.security import HTTPBasicCredentials
 from pathlib import Path
 from app.logger import logger
+from collections import Counter
 import os
 
 
 DEFAULT_GROUP = "Без группы"  # Группа по умолчанию
+DEFAULT_SUBGROUP = "Без группы"
 
 
 def load_document_without_password(file_path: Path):
@@ -50,6 +51,7 @@ def get_document_list(search_query: Optional[str] = None) -> dict[str, list[dict
             doc_data = {
                 "file_name": md_file.stem,
                 "title": post.get("title", md_file.stem),
+                "subgroup": post.get("subgroup", ""),
                 "description": post.get("description", ""),
                 "group": group  # Добавляем группу
             }
@@ -60,11 +62,14 @@ def get_document_list(search_query: Optional[str] = None) -> dict[str, list[dict
             if search_query:
                 search_lower = search_query.lower()
                 if (search_lower in doc_data["title"].lower() or
-                    search_lower in doc_data["description"].lower()):
+                    search_lower in doc_data["description"].lower() or
+                    search_lower in doc_data["subgroup"].lower()):
                     documents[doc_data["group"]].append(doc_data)
+                elif len(documents[doc_data["group"]]) < 1:
+                    del documents[doc_data["group"]]
             else:
                 documents[doc_data["group"]].append(doc_data)
-    
+
     # Сортируем группы и документы внутри групп
     sorted_groups = {}
     for group in sorted(documents.keys()):
@@ -155,3 +160,25 @@ def check_doc(directory_path = Config.DOCUMENTS_DIR) -> bool:
     
     logger.info(f"Дирректория '{directory_path}' отсутствует.")
     return False
+
+def get_subgroup_list() -> list:
+    """Возвращает список подгруп из всех документов"""
+    sub = list()
+    
+    for md_file in Config.DOCUMENTS_DIR.glob("*.md"):
+        with open(md_file, "r", encoding="utf-8") as f:
+            post = load(f)
+
+            # Получение группы
+            group = post.get("subgroup", DEFAULT_SUBGROUP)
+            if not group or group.strip() == "":
+                group = DEFAULT_GROUP
+
+            sub.append(group)
+
+    counter = Counter(sub)
+    filtered_data = {key for key, count in counter.items() if count >= 3}
+    filtered_data = list(filtered_data)
+    filtered_data.remove('Без группы')
+    logger.info(f'Сформирован список подгрупп')
+    Config.set_list(filtered_data)
