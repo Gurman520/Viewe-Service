@@ -13,7 +13,7 @@ templates = Jinja2Templates(directory="app/templates")
 app = FastAPI(
     title="Markdown Viewer",
     description="Сервис отображения документации созданной в Obsidian",
-    version="0.1.3")
+    version="1.0.1")
 
 app.add_middleware(
     CORSMiddleware,

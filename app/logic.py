@@ -11,7 +11,7 @@ import os
 
 
 DEFAULT_GROUP = "Без группы"  # Группа по умолчанию
-DEFAULT_SUBGROUP = "Без группы"
+DEFAULT_SUBGROUP = ""
 
 
 def load_document_without_password(file_path: Path):
@@ -43,6 +43,11 @@ def get_document_list(search_query: Optional[str] = None) -> dict[str, list[dict
             if not group or group.strip() == "":
                 group = DEFAULT_GROUP
 
+            # Получение подгруппы
+            subgroup = post.get("subgroup", DEFAULT_SUBGROUP)
+            if not subgroup or subgroup.strip() == "":
+                subgroup = DEFAULT_SUBGROUP
+
             # Получение факта скрытности
             hide = post.get("hide", "")
             if hide.strip() == "True":
@@ -51,7 +56,7 @@ def get_document_list(search_query: Optional[str] = None) -> dict[str, list[dict
             doc_data = {
                 "file_name": md_file.stem,
                 "title": post.get("title", md_file.stem),
-                "subgroup": post.get("subgroup", ""),
+                "subgroup": subgroup,
                 "description": post.get("description", ""),
                 "group": group  # Добавляем группу
             }
