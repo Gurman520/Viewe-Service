@@ -14,6 +14,8 @@ class Conf(object):
         '.xml', '.pdf', '.doc', '.docx', '.xls', '.xlsx', 
         '.mp4', '.avi'
     }
+    IS_BACKUP = ""
+    TARGET_DISK = ""
     subgroup_list = list()
 
     def __init__(self):
@@ -23,6 +25,8 @@ class Conf(object):
         self.DOCUMENTS_DIR = self.CONTENT_DIR / getenv('DOCUMENTS_DIR')
         self.IMAGES_DIR = self.CONTENT_DIR / getenv('IMAGES_DIR')
         self.PORT = int(getenv('PORT'))
+        self.IS_BACKUP = bool(getenv('IS_BACKUP'))
+        self.TARGET_DISK = Path(getenv('TARGET_FOLDER'))
 
     def set_list(self, new_data: list):
         self.subgroup_list = new_data.copy()

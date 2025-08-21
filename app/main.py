@@ -5,6 +5,7 @@ from .api import base, document, auth, viewer
 from app.puty import Config
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
+from app.archivaruis import create_backup_zip
 from app.logger import logger
 
 
@@ -69,4 +70,12 @@ scheduler.add_job(
     trigger=IntervalTrigger(hours=10),
     next_run_time = datetime.now()  # Запустить сразу при старте
 )
+logger.info(f"Получено - {type(Config.IS_BACKUP)} - {Config.IS_BACKUP}")
+if Config.IS_BACKUP:
+    scheduler.add_job(
+        create_backup_zip,
+        trigger=IntervalTrigger(hours=24),
+        next_run_time = datetime.now()  # Запустить сразу при старте
+    )
+
 scheduler.start()
