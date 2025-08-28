@@ -11,19 +11,40 @@ router = APIRouter()
 # Шаблоны
 templates = Jinja2Templates(directory="app/templates")
 
+@router.get("/adm/list", name="document_adm_list")
+async def list_documents(request: Request, q: Optional[str] = None):
+    """Страница со списком всех документов с поиском"""
+    try:
+        async with AsyncClient() as client:
+            response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/list",
+                                        params={"type": ""})
+        
+        if response.is_success:
+            doc = response.json()
+            # logger.info(f"Открываем страницу со списком инструкций {Config.subgroup_list}")
+            return templates.TemplateResponse(
+                "list.html",
+                {"request": request, "documents": doc["document"], "search_query": q, "subgroup": Config.subgroup_list, "type": "adm"}
+            )
+        else:
+            raise HTTPException(status_code=response.status_code, detail=f"External API returned error: {response.text}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/list", name="document_list")
 async def list_documents(request: Request, q: Optional[str] = None):
     """Страница со списком всех документов с поиском"""
     try:
         async with AsyncClient() as client:
-            response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/list")
+            response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/list",
+                                        params={"type": "doctor"})
         
         if response.is_success:
             doc = response.json()
-            logger.info(f"Открываем страницу со списком инструкций {Config.subgroup_list}")
+            # logger.info(f"Открываем страницу со списком инструкций {Config.subgroup_list}")
             return templates.TemplateResponse(
                 "list.html",
-                {"request": request, "documents": doc["document"], "search_query": q, "subgroup": Config.subgroup_list}
+                {"request": request, "documents": doc["document"], "search_query": q, "subgroup": Config.subgroup_list, "type": "doctor"}
             )
         else:
             raise HTTPException(status_code=response.status_code, detail=f"External API returned error: {response.text}")
@@ -34,12 +55,15 @@ async def list_documents(request: Request, q: Optional[str] = None):
 async def document_router(
     request: Request,
     document_name: str,
+    type_d: str = "",
     doc_session: str = Cookie(default=None)
 ):
     """Получение страницы с документом"""
     try:
+        logger.info(f'Получен параметр type {type_d}')
         async with AsyncClient() as client:
-            response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/{document_name}", cookies={"doc_session": doc_session})
+            response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/{document_name}", 
+                                        cookies={"doc_session": doc_session})
         if response.status_code == 301 :
             doc = response.json()
             logger.info("Ошибка 301 - отправляем на авторизацию")
@@ -51,6 +75,7 @@ async def document_router(
             logger.info("Все отлично")
             doc = response.json()
             doc["request"] = request
+            doc["type"] = type_d
             return templates.TemplateResponse(
                 "document.html",
                 doc

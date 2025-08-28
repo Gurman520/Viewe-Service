@@ -20,9 +20,18 @@
           </div>
         </div>
 
+        {% if type == 'adm' %}
+        <div class="tabs">
+            <a href="{{ url_for('document_adm_list') }}" class="tab active">Документация</a>
+        </div>
+        <div class="tabs">
+            <a href="{{ url_for('document_list') }}" class="tab active">Документация врача</a>
+        </div>
+        {% else %}
         <div class="tabs">
             <a href="{{ url_for('document_list') }}" class="tab active">Документация</a>
         </div>
+        {% endif %}
         <div class="tabs">
             <a href="{{ url_for('view_document', document_name='Как писать документы') }}" class="tab active">Как писать инструкции</a>
         </div>

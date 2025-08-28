@@ -20,10 +20,10 @@ templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/list")
-async def list_documents(request: Request, q: Optional[str] = None):
+async def list_documents(request: Request, q: Optional[str] = None, type: str = None):
     """Страница со списком всех документов с поиском"""
     logger.info("Получен запрос на получение Списка документов")
-    documents = get_document_list(search_query=q)
+    documents = get_document_list(search_query=q, type=type)
     logger.info("Отправлен запрос на получение Списка документов")
     return JSONResponse(content={"document": documents}, status_code=200)
 
@@ -39,12 +39,13 @@ async def document_short_link(doc_id: str, request: Request):
     return RedirectResponse(url=request.url_for("view_document", document_name=doc_id))
 
 @router.post("/search", name="search_documents")
-async def search_documents(request: Request, search_query: str = Form(...)):
+async def search_documents(request: Request, search_query: str = Form(...), type: str = ""):
     """Обработка поискового запроса из формы"""
-    documents = get_document_list(search_query=search_query)
+    documents = get_document_list(search_query=search_query, type=type)
+    logger.info(f"Получен список при поиске: {documents}")
     return templates.TemplateResponse(
         "list.html",
-        {"request": request, "documents": documents, "search_query": search_query, "subgroup": Config.subgroup_list}
+        {"request": request, "documents": documents, "search_query": search_query, "subgroup": Config.subgroup_list, "type": type}
     )
     
 @router.get("/{document_name}/download", name="download_document_with_assets")

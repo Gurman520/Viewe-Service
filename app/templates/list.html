@@ -7,7 +7,7 @@
     
     <div class="card mb-4">
         <div class="card-body">
-            <form action="{{url_for('search_documents') }}" method="post" class="row g-2" onsubmit="return validateSearch()">
+            <form action="{{url_for('search_documents') }}?type={{ type }}" method="post" class="row g-2" onsubmit="return validateSearch()">
                 <div class="col-md-10">
                     <input type="text" 
                            name="search_query" 
@@ -63,7 +63,7 @@
                 <div class="accordion-body p-0">
                     <div class="list-group list-group-flush">
                         {% for doc in docs %}
-                        <a href="{{ url_for('view_document', document_name=doc.file_name) }}" 
+                        <a href="{{ url_for('view_document', document_name=doc.file_name) }}?type_d={{ type }}" 
                            class="list-group-item list-group-item-action">
                             <h5 class="mb-1">{{ doc.title }}</h5>
                             {% if doc.subgroup %}
