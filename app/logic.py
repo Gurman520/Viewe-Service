@@ -12,6 +12,8 @@ import os
 from datetime import datetime, timedelta
 import time
 
+from app.db.process import get_documents_by_type
+
 
 DEFAULT_GROUP = "Без группы"  # Группа по умолчанию
 DEFAULT_SUBGROUP = ""
@@ -38,60 +40,9 @@ def get_document_list(search_query: Optional[str] = None, type: str = "") -> dic
     """Возвращает документы сгруппированные по категориям"""
     documents = dict()
 
-    if type == "adm":
-        type = ''
-    
-    for md_file in Config.DOCUMENTS_DIR.glob("*.md"):
-        with open(md_file, "r", encoding="utf-8") as f:
-            post = load(f)
-
-            # Получение группы
-            group = post.get("group", DEFAULT_GROUP)
-            if not group or group.strip() == "":
-                group = DEFAULT_GROUP
-
-            # Получение подгруппы
-            subgroup = post.get("subgroup", DEFAULT_SUBGROUP)
-            if not subgroup or subgroup.strip() == "":
-                subgroup = DEFAULT_SUBGROUP
-
-            # Получение факта скрытности
-            hide = post.get("hide", "")
-            if hide.strip() == "True":
-                continue
-
-            type_d = post.get("type", "")
-            if type_d.strip() != type:
-                continue
-            
-            doc_data = {
-                "file_name": md_file.stem,
-                "title": post.get("title", md_file.stem),
-                "subgroup": subgroup,
-                "description": post.get("description", ""),
-                "group": group  # Добавляем группу
-            }
-
-            if doc_data["group"] not in documents.keys():
-                documents[doc_data["group"]] = list()
-
-            if search_query:
-                search_lower = search_query.lower()
-                if (search_lower in doc_data["title"].lower() or
-                    search_lower in doc_data["description"].lower() or
-                    search_lower in doc_data["subgroup"].lower()):
-                    documents[doc_data["group"]].append(doc_data)
-                elif len(documents[doc_data["group"]]) < 1:
-                    del documents[doc_data["group"]]
-            else:
-                documents[doc_data["group"]].append(doc_data)
-
-    # Сортируем группы и документы внутри групп
-    sorted_groups = {}
-    for group in sorted(documents.keys()):
-        sorted_groups[group] = sorted(documents[group], key=lambda x: x["title"])
-    logger.info("Подготовлен список документов")
-    return sorted_groups
+    document = get_documents_by_type(search_query = search_query, doc_type=type)
+    logger.info("Получен список документов для отображения в списке")
+    return document
 
 def process_wiki_links(content: str) -> str:
     """Обрабатывает вики-синтаксис ссылок ![[filename.ext]]"""
@@ -202,101 +153,101 @@ def get_subgroup_list() -> list:
 
 
 
-def update_doctor_document_list():
-    """Ищет новые документы, а так же обновленные за последний час"""
-    documents = list()
+# def update_doctor_document_list():
+#     """Ищет новые документы, а так же обновленные за последний час"""
+#     documents = list()
 
-    # Определяем временную границу (последний час)
-    one_hour_ago = datetime.now() - timedelta(hours=1)
-    one_hour_ago_timestamp = time.mktime(one_hour_ago.timetuple())
+#     # Определяем временную границу (последний час)
+#     one_hour_ago = datetime.now() - timedelta(hours=1)
+#     one_hour_ago_timestamp = time.mktime(one_hour_ago.timetuple())
     
-    for md_file in Config.DOCUMENTS_DIR.glob("*.md"):
+#     for md_file in Config.DOCUMENTS_DIR.glob("*.md"):
 
-        # Проверяем время изменения файла
-        file_mtime = os.path.getmtime(md_file)
-        if file_mtime < one_hour_ago_timestamp:
-            continue  # Пропускаем файлы старше часа
+#         # Проверяем время изменения файла
+#         file_mtime = os.path.getmtime(md_file)
+#         if file_mtime < one_hour_ago_timestamp:
+#             continue  # Пропускаем файлы старше часа
 
-        with open(md_file, "r", encoding="utf-8") as f:
-            post = load(f)
+#         with open(md_file, "r", encoding="utf-8") as f:
+#             post = load(f)
 
-            # Получение группы
-            group = post.get("group", DEFAULT_GROUP)
-            if not group or group.strip() == "":
-                group = DEFAULT_GROUP
+#             # Получение группы
+#             group = post.get("group", DEFAULT_GROUP)
+#             if not group or group.strip() == "":
+#                 group = DEFAULT_GROUP
 
-            # Получение подгруппы
-            subgroup = post.get("subgroup", DEFAULT_SUBGROUP)
-            if not subgroup or subgroup.strip() == "":
-                subgroup = DEFAULT_SUBGROUP
+#             # Получение подгруппы
+#             subgroup = post.get("subgroup", DEFAULT_SUBGROUP)
+#             if not subgroup or subgroup.strip() == "":
+#                 subgroup = DEFAULT_SUBGROUP
 
-            # Получение подгруппы
-            type = post.get("type", DEFAULT_TYPE)
-            if not type or type.strip() == "":
-                type = DEFAULT_TYPE
+#             # Получение подгруппы
+#             type = post.get("type", DEFAULT_TYPE)
+#             if not type or type.strip() == "":
+#                 type = DEFAULT_TYPE
 
-            # Получение факта скрытности
-            hide = post.get("hide", "")
-            if hide.strip() != "True":
-                hide = False
-            else:
-                hide = True
+#             # Получение факта скрытности
+#             hide = post.get("hide", "")
+#             if hide.strip() != "True":
+#                 hide = False
+#             else:
+#                 hide = True
             
-            doc_data = {
-                "file_name": md_file.stem,
-                "title": post.get("title", md_file.stem),
-                "subgroup": subgroup,
-                "description": post.get("description", ""),
-                "group": group,  # Добавляем группу
-                "hide": hide,
-                "type": type
-            }
+#             doc_data = {
+#                 "file_name": md_file.stem,
+#                 "title": post.get("title", md_file.stem),
+#                 "subgroup": subgroup,
+#                 "description": post.get("description", ""),
+#                 "group": group,  # Добавляем группу
+#                 "hide": hide,
+#                 "type": type
+#             }
 
-            documents.append(doc_data)
+#             documents.append(doc_data)
 
-    # Здесь будем вызывать метод из БД обновление\
+#     # Здесь будем вызывать метод из БД обновление\
 
 
-def creat_document_list_in_bd():
-    """Проходит по всчем документам и записывает их в БД в первый раз"""
-    documents = list()
+# def creat_document_list_in_bd():
+#     """Проходит по всчем документам и записывает их в БД в первый раз"""
+#     documents = list()
     
-    for md_file in Config.DOCUMENTS_DIR.glob("*.md"):
-        with open(md_file, "r", encoding="utf-8") as f:
-            post = load(f)
+#     for md_file in Config.DOCUMENTS_DIR.glob("*.md"):
+#         with open(md_file, "r", encoding="utf-8") as f:
+#             post = load(f)
 
-            # Получение группы
-            group = post.get("group", DEFAULT_GROUP)
-            if not group or group.strip() == "":
-                group = DEFAULT_GROUP
+#             # Получение группы
+#             group = post.get("group", DEFAULT_GROUP)
+#             if not group or group.strip() == "":
+#                 group = DEFAULT_GROUP
 
-            # Получение подгруппы
-            subgroup = post.get("subgroup", DEFAULT_SUBGROUP)
-            if not subgroup or subgroup.strip() == "":
-                subgroup = DEFAULT_SUBGROUP
+#             # Получение подгруппы
+#             subgroup = post.get("subgroup", DEFAULT_SUBGROUP)
+#             if not subgroup or subgroup.strip() == "":
+#                 subgroup = DEFAULT_SUBGROUP
 
-            # Получение подгруппы
-            type = post.get("type", DEFAULT_TYPE)
-            if not type or type.strip() == "":
-                type = DEFAULT_TYPE
+#             # Получение подгруппы
+#             type = post.get("type", DEFAULT_TYPE)
+#             if not type or type.strip() == "":
+#                 type = DEFAULT_TYPE
 
-            # Получение факта скрытности
-            hide = post.get("hide", "")
-            if hide.strip() != "True":
-                hide = False
-            else:
-                hide = True
+#             # Получение факта скрытности
+#             hide = post.get("hide", "")
+#             if hide.strip() != "True":
+#                 hide = False
+#             else:
+#                 hide = True
             
-            doc_data = {
-                "file_name": md_file.stem,
-                "title": post.get("title", md_file.stem),
-                "subgroup": subgroup,
-                "description": post.get("description", ""),
-                "group": group,  # Добавляем группу
-                "hide": hide,
-                "type": type
-            }
+#             doc_data = {
+#                 "file_name": md_file.stem,
+#                 "title": post.get("title", md_file.stem),
+#                 "subgroup": subgroup,
+#                 "description": post.get("description", ""),
+#                 "group": group,  # Добавляем группу
+#                 "hide": hide,
+#                 "type": type
+#             }
 
-            documents.append(doc_data)
+#             documents.append(doc_data)
 
-    # Здесь будем вызывать метод из БД обновление\
+#     # Здесь будем вызывать метод из БД обновление\

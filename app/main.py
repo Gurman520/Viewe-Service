@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from app.archivaruis import create_backup_zip
 from app.logger import logger
+from app.documents import process_first_run, process_subsequent_run
 
 
 templates = Jinja2Templates(directory="app/templates")
@@ -36,7 +37,7 @@ app.include_router(base.router, tags=["base"])
 # Кастомный обработчик HTTP Ошибок 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException):
-    logger.info(f'Запрос пришел {request.url.path}')
+    logger.info(f'Запрос пришел {request.url}')
     if exc.status_code == 500:
         return templates.TemplateResponse(
             "500.html",
@@ -52,9 +53,11 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
     elif exc.status_code == 401:
         if '/api/auth/' in request.url.path:
             return Response(status_code=401, content="Incorrect password")
+        q = request.url.query.split('=')[1]
+        logger.debug(f'Запрос пришел {q} - Тип {type(q)}')
         return templates.TemplateResponse(
             "auth.html",
-            {"request": request, "document_name": exc.detail}
+            {"request": request, "hash": exc.detail, "type": q}
         )
 
 
@@ -63,6 +66,9 @@ from apscheduler.triggers.interval import IntervalTrigger
 from app.logic import get_subgroup_list
 from datetime import datetime
 
+# Инициализация данных в БД
+process_first_run(Config.DOCUMENTS_DIR, Config.DB_PATH)
+
 # Инициализация scheduler
 scheduler = BackgroundScheduler()
 scheduler.add_job(
@@ -70,6 +76,13 @@ scheduler.add_job(
     trigger=IntervalTrigger(hours=10),
     next_run_time = datetime.now()  # Запустить сразу при старте
 )
+
+scheduler.add_job(
+    process_subsequent_run,
+    trigger=IntervalTrigger(minutes=10),
+    next_run_time = datetime.now()  # Запустить сразу при старте
+)
+
 logger.info(f"Получено - {type(Config.IS_BACKUP)} - {Config.IS_BACKUP}")
 if Config.IS_BACKUP:
     scheduler.add_job(

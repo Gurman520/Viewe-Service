@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 from pathlib import Path
 from os import getenv
+from datetime import timedelta
+from app.security import ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 class Conf(object):
@@ -9,6 +11,7 @@ class Conf(object):
     DOCUMENTS_DIR = ""
     IMAGES_DIR = ""
     PORT = ""
+    DB_PATH = "content.db"
     ALLOWED_FILE_EXTENSIONS = {
         '.txt', '.bat', '.sh', '.csv', '.json', '.exe',
         '.xml', '.pdf', '.doc', '.docx', '.xls', '.xlsx', 
@@ -16,6 +19,10 @@ class Conf(object):
     }
     IS_BACKUP = ""
     TARGET_DISK = ""
+
+    SESSION_COOKIE_NAME = "doc_session"
+    TOKEN_EXPIRE = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
     subgroup_list = list()
 
     def __init__(self):

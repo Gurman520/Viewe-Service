@@ -41,6 +41,7 @@ async def list_documents(request: Request, q: Optional[str] = None):
         
         if response.is_success:
             doc = response.json()
+            # logger.info(f"Открываем страницу со списком документов {doc["document"]}")
             # logger.info(f"Открываем страницу со списком инструкций {Config.subgroup_list}")
             return templates.TemplateResponse(
                 "list.html",
@@ -51,65 +52,15 @@ async def list_documents(request: Request, q: Optional[str] = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/{document_name}", name="view_document")
-async def document_router(
-    request: Request,
-    document_name: str,
-    type_d: str = "",
-    doc_session: str = Cookie(default=None)
-):
-    """Получение страницы с документом"""
-    try:
-        logger.info(f'Получен параметр type {type_d}')
-        async with AsyncClient() as client:
-            response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/{document_name}", 
-                                        cookies={"doc_session": doc_session})
-        if response.status_code == 301 :
-            doc = response.json()
-            logger.info("Ошибка 301 - отправляем на авторизацию")
-            return templates.TemplateResponse(
-                "auth.html",
-                {"request": request, "document_name": doc["document_name"]}
-            )
-        elif response.status_code == 200:
-            logger.info("Все отлично")
-            doc = response.json()
-            doc["request"] = request
-            doc["type"] = type_d
-            return templates.TemplateResponse(
-                "document.html",
-                doc
-            )
-        elif response.status_code == 401:
-            logger.info("Ошибка 401 - Пользователь не авторизован")
-            raise HTTPException(status_code=401, detail=str(document_name))
-        elif response.status_code == 404:
-            logger.info("Ошибка 404 - Документ не найден")
-            raise HTTPException(status_code=404, detail=str(document_name))
-        else:
-            logger.critical("Ошикбка " + str(response.text))
-            raise HTTPException(status_code=response.status_code, detail=f"External API returned error: {response.text}")
-    except HTTPException as exc:
-        if exc.status_code == 404:
-            raise HTTPException(status_code=404, detail=str(exc.detail))
-        if exc.status_code == 401:
-            raise HTTPException(status_code=401, detail=str(exc.detail))
-        else:
-            raise HTTPException(status_code=500, detail=str(exc.detail))
-    except Exception as e:
-        logger.critical("Ошибка " + str(e))
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/d/isolated_view/{document_name}", name="isolated_view")
-async def isolated_view(request: Request, document_name: str):
+@router.get("/d/isolated_view/{hash}", name="isolated_view")
+async def isolated_view(request: Request, hash: str):
     """Изолированный просмотр документа без навигации"""
     try:
         async with AsyncClient() as client:
-            response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/isolated_view/{document_name}")
+            response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/isolated_view/{hash}")
         
         if response.status_code == 200:
-            logger.info("Отправлен документ для изолированного просмотра - " + str(document_name))
+            logger.info("Отправлен документ для изолированного просмотра - " + str(hash))
             doc = response.json()
             doc["request"] = request
             return templates.TemplateResponse(
@@ -124,4 +75,56 @@ async def isolated_view(request: Request, document_name: str):
         else:
             raise HTTPException(status_code=500, detail=str(exc.detail))
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{hash}", name="view_document")
+async def document_router(
+    request: Request,
+    hash: str,
+    type_d: str = "",
+    doc_session: str = Cookie(default=None)
+):
+    """Получение страницы с документом"""
+    try:
+        logger.info(f'Получен параметр type {type_d}')
+        async with AsyncClient() as client:
+            response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/{hash}", 
+                                        cookies={"doc_session": doc_session})
+        if response.status_code == 301 :
+            doc = response.json()
+            logger.info("Ошибка 301 - отправляем на авторизацию")
+            doc["type"] = type_d
+            return templates.TemplateResponse(
+                "auth.html",
+                {"request": request, "content_hash": doc["content_hash"], "type": type_d}
+            )
+        elif response.status_code == 200:
+            logger.info("VIEW - Статус 200")
+            doc = response.json()
+            doc["request"] = request
+            doc["type"] = type_d
+            doc['hash'] = hash
+            return templates.TemplateResponse(
+                "document.html",
+                doc
+            )
+        elif response.status_code == 401:
+            logger.info("VIEW - Ошибка 401 - Пользователь не авторизован")
+            raise HTTPException(status_code=401, detail=str(hash))
+        elif response.status_code == 404:
+            logger.info("Ошибка 404 - Документ не найден")
+            raise HTTPException(status_code=404, detail=str(hash))
+        else:
+            logger.critical("Ошикбка " + str(response.text))
+            raise HTTPException(status_code=response.status_code, detail=f"External API returned error: {response.text}")
+    except HTTPException as exc:
+        if exc.status_code == 404:
+            raise HTTPException(status_code=404, detail=str(exc.detail))
+        if exc.status_code == 401:
+            raise HTTPException(status_code=401, detail=str(exc.detail))
+        else:
+            raise HTTPException(status_code=500, detail=str(exc.detail))
+    except Exception as e:
+        logger.critical("Ошибка " + str(e))
         raise HTTPException(status_code=500, detail=str(e))

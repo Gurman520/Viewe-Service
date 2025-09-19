@@ -35,7 +35,7 @@
                                 <div class="mb-3">
                                     <label for="shareLink" class="form-label">Ссылка для изолированного просмотра:</label>
                                     <input type="text" class="form-control" id="shareLink" 
-                                           value="{{ url_for('isolated_view', document_name=document_name|replace(' ', '_')) }}" readonly>
+                                           value="{{ url_for('isolated_view', hash=hash) }}" readonly>
                                            <small class="text-muted">Эта ссылка открывает документ без возможности вернуться в систему</small>
                                 </div>
                             </div>
@@ -72,9 +72,15 @@
         <hr>
 
         <div class="d-flex justify-content-between mt-4">
+            {% if type == 'adm' %}
+            <a href="{{ url_for('document_adm_list') }}" class="btn btn-primary">
+                <i class="bi bi-arrow-left"></i> Назад
+            </a>
+            {% else %}
             <a href="{{ url_for('document_list') }}" class="btn btn-primary">
                 <i class="bi bi-arrow-left"></i> Назад
             </a>
+            {% endif %}
             
             {% if document_attachments %}
             <div>

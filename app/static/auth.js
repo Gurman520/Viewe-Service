@@ -6,13 +6,15 @@ function decodeHtmlEntities(text) {
 
 document.getElementById('authForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    let doc_name = $('#doc-info').attr('data-doc-name');
-    const serverResponse = doc_name;
-    const decodedText = decodeHtmlEntities(serverResponse);
-    const path = decodedText;
-    const encodedPath = encodeURIComponent(path)
-        .replace(/'/g, "%27");
-    console.log(encodedPath);
+    let doc_hash = $('#doc-info').attr('data-doc-hash');
+    let doc_type = $('#doc-info').attr('data-doc-type');
+    console.log(doc_hash)
+    // const serverResponse = doc_name;
+    // const decodedText = decodeHtmlEntities(serverResponse);
+    // const path = decodedText;
+    // const encodedPath = encodeURIComponent(path)
+    //     .replace(/'/g, "%27");
+    // console.log(encodedPath);
     const passwordInput = document.querySelector('#password'); // Пароль из формы
     const passwordValue = passwordInput.value.trim();          // Убираем пробелы
     // Функция для корректного кодирования UTF-8 → Base64
@@ -24,7 +26,7 @@ document.getElementById('authForm').addEventListener('submit', async (e) => {
 
     console.log(utf8ToBase64(`user:${passwordValue}`))
 
-    const response = await fetch(`/api/auth/${encodedPath}`, {
+    const response = await fetch(`/api/auth/${doc_hash}`, {
         method: 'POST',
         headers: {
             'Authorization': 'Basic ' + utf8ToBase64(`user:${passwordValue}`),
@@ -35,7 +37,7 @@ document.getElementById('authForm').addEventListener('submit', async (e) => {
     
     if (response.ok) {
         const data = await response.json();
-        const docResponse = await fetch(`/view/${encodedPath}`, {
+        const docResponse = await fetch(`/view/${doc_hash}?type_d=${doc_type}`, {
                 credentials: "include",  // Передаем куки
             });
         if (docResponse.ok) {

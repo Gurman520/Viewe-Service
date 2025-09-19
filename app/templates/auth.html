@@ -16,9 +16,18 @@
           </div>
         </div>
 
+        {% if type == 'adm' %}
+        <div class="tabs">
+            <a href="{{ url_for('document_adm_list') }}" class="tab active">Документация</a>
+        </div>
+        <div class="tabs">
+            <a href="{{ url_for('document_list') }}" class="tab active">Документация врача</a>
+        </div>
+        {% else %}
         <div class="tabs">
             <a href="{{ url_for('document_list') }}" class="tab active">Документация</a>
         </div>
+        {% endif %}
     </div>
     
     <div class="container mt-5">
@@ -44,7 +53,7 @@
     <footer>
         <p>&copy; 2025 ГАУЗ ККБСМП | Сулима Р.И. Все права защищены.</p>
     </footer>
-    <div id="doc-info" data-doc-name="{{ document_name }}"></div>
+    <div id="doc-info" data-doc-hash="{{ hash }}" data-doc-type="{{ type }}"></div>
     <script src="/static/auth.js"></script>
 </body>
 </html>
