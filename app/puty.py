@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 from os import getenv
 from datetime import timedelta
-from app.security import ACCESS_TOKEN_EXPIRE_MINUTES
+import secrets
 
 
 class Conf(object):
@@ -21,7 +21,11 @@ class Conf(object):
     TARGET_DISK = ""
 
     SESSION_COOKIE_NAME = "doc_session"
+
+    ACCESS_TOKEN_EXPIRE_MINUTES = 120  # 2 часа
     TOKEN_EXPIRE = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    SECRET_KEY = secrets.token_urlsafe(32)
+    ALGORITHM = "HS256"
 
     subgroup_list = list()
 

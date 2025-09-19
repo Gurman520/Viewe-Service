@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
-from app.logger import logger
+from app.log.logger import logger
 
 
 def file_exists_in_db(db_path: str, file_path: str) -> bool:

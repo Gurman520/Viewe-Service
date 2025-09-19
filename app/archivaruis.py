@@ -2,7 +2,7 @@ import os
 import zipfile
 from datetime import datetime
 from app.puty import Config
-from app.logger import logger
+from app.log.logger import logger
 
 
 def create_backup_zip():

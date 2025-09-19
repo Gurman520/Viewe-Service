@@ -1,16 +1,14 @@
-from fastapi import APIRouter, Request, Form, HTTPException, status, Cookie
+from fastapi import APIRouter, Request, Form, HTTPException, Cookie
 from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from frontmatter import load
-from re import finditer, findall
+from re import findall
 from zipfile import ZipFile
 from typing import Optional
 from tempfile import NamedTemporaryFile
 from pathlib import Path
 from app.puty import Config
-from app.logic import get_document_list, render_markdown, load_document_without_password
-from app.security import get_document_name_from_token
-from app.logger import logger
+from app.logi.doc_logic import get_document_list
+from app.log.logger import logger
 from app.logi.document import get_document, get_isolated_document
 
 
@@ -19,13 +17,11 @@ router = APIRouter()
 # Шаблоны
 templates = Jinja2Templates(directory="app/templates")
 
-
 @router.get("/list")
 async def list_documents(request: Request, q: Optional[str] = None, type: str = None):
     """Страница со списком всех документов с поиском"""
-    logger.info("Получен запрос на получение Списка документов")
+    logger.info("API DOC - Получен запрос на получение Списка документов")
     documents = get_document_list(search_query=q, type=type)
-    logger.info("Отправлен запрос на получение Списка документов")
     return JSONResponse(content={"document": documents}, status_code=200)
 
 @router.get("/d/{doc_id}", name="document_short_link")
@@ -41,8 +37,8 @@ async def document_short_link(doc_id: str, request: Request):
 @router.post("/search", name="search_documents")
 async def search_documents(request: Request, search_query: str = Form(...), type: str = ""):
     """Обработка поискового запроса из формы"""
+    logger.info("API DOC - Сделан запрос на поиск по: " + search_query)
     documents = get_document_list(search_query=search_query, type=type)
-    logger.info(f"Получен список при поиске: {documents}")
     return templates.TemplateResponse(
         "list.html",
         {"request": request, "documents": documents, "search_query": search_query, "subgroup": Config.subgroup_list, "type": type}
@@ -53,7 +49,7 @@ async def download_document_with_assets(document_name: str):
     """Скачивание документа со всеми вложениями в ZIP-архиве"""
     original_name = document_name.replace('_', ' ')
     md_file = Config.DOCUMENTS_DIR / f"{original_name}.md"
-    logger.info("Пытаемся скачать файл: |" + str(md_file))
+    logger.info("API DOC - Запрошен файл с вложениеми на скачивание: " + str(md_file))
     
     if not md_file.exists():
         raise HTTPException(status_code=404, detail="Document not found")
@@ -100,6 +96,8 @@ async def download_file(filename: str):
     """Скачивание файла"""
     file_path = Config.IMAGES_DIR / filename
 
+    logger.info("API DOC - Запрошен файл для скачивания: " + filename)
+
     # Проверка безопасности
     if ".." in filename or not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
@@ -117,7 +115,7 @@ async def download_file(filename: str):
 async def create_isolated_view(request: Request, hash: str):
     """Изолированный просмотр документа без навигации"""
 
-    logger.info("Запрошен файл по hash: " + hash)
+    logger.info("API DOC - Запрошен файл для изолированного просмотра по hash: " + hash)
 
     d = get_isolated_document(hash=hash)
     
@@ -129,9 +127,8 @@ async def document_route(
     hash: str,
     doc_session: str = Cookie(default=None)
 ):
-    logger.info("Запрошен файл по hash: " + hash)
+    logger.info("API DOC - Запрошен файл для просмотра по hash: " + hash)
 
     d = await get_document(hash=hash, doc_session=doc_session)
-    logger.info(f"Получен d - {d}")
     
     return d

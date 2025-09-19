@@ -1,12 +1,11 @@
 from fastapi import HTTPException, Cookie, status
 from app.puty import Config
 from app.db.process import get_document_by_hash
-from app.logger import logger
+from app.log.logger import logger
 from fastapi.responses import JSONResponse
-from frontmatter import load
-from app.logic import get_document_list, render_markdown, load_document_without_password
-from app.security import get_document_name_from_token
-from re import finditer, findall
+from app.logi.doc_logic import render_markdown, load_document_without_password
+from app.logi.auth import get_document_name_from_token
+from re import finditer
 from pathlib import Path
 
 
@@ -36,13 +35,13 @@ async def view_document(
                     detail="Token not valid for this document",
                 )
         except HTTPException:
-            logger.info("Не соответсвие файлов, отправляем на повторную авторизацию")
+            logger.info("APP - Не соответсвие файлов, отправляем на повторную авторизацию")
             raise HTTPException(
                     status_code=401,
                     detail="Not authenticated",
                 )
         
-    logger.info("Начинаем формировать итоговый ответ")
+    logger.info("APP - Начинаем формировать итоговый ответ")
     return await get_document_response(md_file)
 
 
@@ -93,11 +92,8 @@ def get_isolated_document(hash: str):
         try:
 
             md_file = Config.DOCUMENTS_DIR / document['file_path']
-            logger.info(f"Путь: {md_file}")
             post = load_document_without_password(md_file)
-            logger.info(f"Загружен до")
             content = render_markdown(post.content)
-            logger.info(f"Сформированн контент")
             doc = {
                 "title": md_file.stem,
                 "content": content,

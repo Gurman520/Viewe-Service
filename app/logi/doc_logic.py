@@ -5,13 +5,9 @@ from frontmatter import load
 from app.puty import Config
 from secrets import compare_digest
 from pathlib import Path
-from app.logger import logger
+from app.log.logger import logger
 from collections import Counter
 import os
-
-from datetime import datetime, timedelta
-import time
-
 from app.db.process import get_documents_by_type
 
 
@@ -24,7 +20,7 @@ def load_document_without_password(file_path: Path):
     """Удаление пароля из метаданных"""
     with open(file_path, 'r', encoding='utf-8') as f:
         post = load(f)
-        logger.info("Очистка пароля из методанных")
+        logger.info("APP - Очистка пароля из методанных")
         # Создаем копию метаданных без пароля
         clean_metadata = {k: v for k, v in post.metadata.items() if k != 'password'}
         post.metadata = clean_metadata
@@ -32,16 +28,14 @@ def load_document_without_password(file_path: Path):
 
 def check_password(credentials: dict, correct_password: str):
     """Функция проверки корректности пароля"""
-    logger.info("Проверка пароля")
+    logger.info("APP - Проверка пароля")
     is_correct_password = compare_digest(credentials['password'], correct_password)
     return  is_correct_password
 
 def get_document_list(search_query: Optional[str] = None, type: str = "") -> dict[str, list[dict]]:
     """Возвращает документы сгруппированные по категориям"""
-    documents = dict()
-
     document = get_documents_by_type(search_query = search_query, doc_type=type)
-    logger.info("Получен список документов для отображения в списке")
+    logger.info("APP - Получен список документов для отображения в списке")
     return document
 
 def process_wiki_links(content: str) -> str:
@@ -98,7 +92,7 @@ def process_wiki_links(content: str) -> str:
         content
     )
 
-    logger.info("Подготовка ссылок завершена")
+    logger.info("APP - Подготовка ссылок завершена")
     return content
 
 def render_markdown(content: str) -> str:
@@ -122,10 +116,10 @@ def render_markdown(content: str) -> str:
 def check_doc(directory_path = Config.DOCUMENTS_DIR) -> bool:
     """Проверка существования Директории"""
     if os.path.exists(directory_path):
-        logger.info(f"Дирректория '{directory_path}' существует.")
+        logger.info(f"APP - Дирректория '{directory_path}' существует.")
         return True
     
-    logger.info(f"Дирректория '{directory_path}' отсутствует.")
+    logger.info(f"APP - Дирректория '{directory_path}' отсутствует.")
     return False
 
 def get_subgroup_list() -> list:
@@ -147,107 +141,5 @@ def get_subgroup_list() -> list:
     filtered_data = {key for key, count in counter.items() if count >= 3}
     filtered_data = list(filtered_data)
     filtered_data.remove('Без группы')
-    logger.info(f'Сформирован список подгрупп')
+    logger.info(f'APP - Сформирован список подгрупп')
     Config.set_list(filtered_data)
-
-
-
-
-# def update_doctor_document_list():
-#     """Ищет новые документы, а так же обновленные за последний час"""
-#     documents = list()
-
-#     # Определяем временную границу (последний час)
-#     one_hour_ago = datetime.now() - timedelta(hours=1)
-#     one_hour_ago_timestamp = time.mktime(one_hour_ago.timetuple())
-    
-#     for md_file in Config.DOCUMENTS_DIR.glob("*.md"):
-
-#         # Проверяем время изменения файла
-#         file_mtime = os.path.getmtime(md_file)
-#         if file_mtime < one_hour_ago_timestamp:
-#             continue  # Пропускаем файлы старше часа
-
-#         with open(md_file, "r", encoding="utf-8") as f:
-#             post = load(f)
-
-#             # Получение группы
-#             group = post.get("group", DEFAULT_GROUP)
-#             if not group or group.strip() == "":
-#                 group = DEFAULT_GROUP
-
-#             # Получение подгруппы
-#             subgroup = post.get("subgroup", DEFAULT_SUBGROUP)
-#             if not subgroup or subgroup.strip() == "":
-#                 subgroup = DEFAULT_SUBGROUP
-
-#             # Получение подгруппы
-#             type = post.get("type", DEFAULT_TYPE)
-#             if not type or type.strip() == "":
-#                 type = DEFAULT_TYPE
-
-#             # Получение факта скрытности
-#             hide = post.get("hide", "")
-#             if hide.strip() != "True":
-#                 hide = False
-#             else:
-#                 hide = True
-            
-#             doc_data = {
-#                 "file_name": md_file.stem,
-#                 "title": post.get("title", md_file.stem),
-#                 "subgroup": subgroup,
-#                 "description": post.get("description", ""),
-#                 "group": group,  # Добавляем группу
-#                 "hide": hide,
-#                 "type": type
-#             }
-
-#             documents.append(doc_data)
-
-#     # Здесь будем вызывать метод из БД обновление\
-
-
-# def creat_document_list_in_bd():
-#     """Проходит по всчем документам и записывает их в БД в первый раз"""
-#     documents = list()
-    
-#     for md_file in Config.DOCUMENTS_DIR.glob("*.md"):
-#         with open(md_file, "r", encoding="utf-8") as f:
-#             post = load(f)
-
-#             # Получение группы
-#             group = post.get("group", DEFAULT_GROUP)
-#             if not group or group.strip() == "":
-#                 group = DEFAULT_GROUP
-
-#             # Получение подгруппы
-#             subgroup = post.get("subgroup", DEFAULT_SUBGROUP)
-#             if not subgroup or subgroup.strip() == "":
-#                 subgroup = DEFAULT_SUBGROUP
-
-#             # Получение подгруппы
-#             type = post.get("type", DEFAULT_TYPE)
-#             if not type or type.strip() == "":
-#                 type = DEFAULT_TYPE
-
-#             # Получение факта скрытности
-#             hide = post.get("hide", "")
-#             if hide.strip() != "True":
-#                 hide = False
-#             else:
-#                 hide = True
-            
-#             doc_data = {
-#                 "file_name": md_file.stem,
-#                 "title": post.get("title", md_file.stem),
-#                 "subgroup": subgroup,
-#                 "description": post.get("description", ""),
-#                 "group": group,  # Добавляем группу
-#                 "hide": hide,
-#                 "type": type
-#             }
-
-#             documents.append(doc_data)
-
-#     # Здесь будем вызывать метод из БД обновление\

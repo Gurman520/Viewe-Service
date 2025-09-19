@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from app.logic import check_doc
+from app.logi.doc_logic import check_doc
 
 
 router = APIRouter()
@@ -11,6 +11,11 @@ templates = Jinja2Templates(directory="app/templates")
 async def home(request: Request):
     """редирект"""
     return RedirectResponse("/view/list")
+
+@router.get("/admin")
+async def adm_home(request: Request):
+    """редирект"""
+    return RedirectResponse("/view/adm/list")
 
 @router.get("/favicon.ico", include_in_schema=False)
 async def favicon():

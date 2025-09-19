@@ -6,8 +6,8 @@ from app.puty import Config
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from app.archivaruis import create_backup_zip
-from app.logger import logger
-from app.documents import process_first_run, process_subsequent_run
+from app.log.logger import logger
+from app.logi.doc_data_update import process_first_run, process_subsequent_run
 
 
 templates = Jinja2Templates(directory="app/templates")
@@ -63,7 +63,7 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from app.logic import get_subgroup_list
+from app.logi.doc_logic import get_subgroup_list
 from datetime import datetime
 
 # Инициализация данных в БД
@@ -83,7 +83,6 @@ scheduler.add_job(
     next_run_time = datetime.now()  # Запустить сразу при старте
 )
 
-logger.info(f"Получено - {type(Config.IS_BACKUP)} - {Config.IS_BACKUP}")
 if Config.IS_BACKUP:
     scheduler.add_job(
         create_backup_zip,

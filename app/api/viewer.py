@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException, Cookie
 from fastapi.templating import Jinja2Templates
 from typing import Optional
-from app.logger import logger
+from app.log.logger import logger
 from httpx import AsyncClient
 from app.puty import Config
 
@@ -57,7 +57,7 @@ async def isolated_view(request: Request, hash: str):
             response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/isolated_view/{hash}")
         
         if response.status_code == 200:
-            logger.info("Отправлен документ для изолированного просмотра - " + str(hash))
+            logger.info("VIEW - Отправлен документ для изолированного просмотра - " + str(hash))
             doc = response.json()
             doc["request"] = request
             return templates.TemplateResponse(
@@ -84,13 +84,12 @@ async def document_router(
 ):
     """Получение страницы с документом"""
     try:
-        logger.info(f'Получен параметр type {type_d}')
         async with AsyncClient() as client:
             response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/{hash}", 
                                         cookies={"doc_session": doc_session})
         if response.status_code == 301 :
             doc = response.json()
-            logger.info("Ошибка 301 - отправляем на авторизацию")
+            logger.info("VIEW - Ошибка 301 - отправляем на авторизацию")
             doc["type"] = type_d
             return templates.TemplateResponse(
                 "auth.html",
@@ -110,10 +109,10 @@ async def document_router(
             logger.info("VIEW - Ошибка 401 - Пользователь не авторизован")
             raise HTTPException(status_code=401, detail=str(hash))
         elif response.status_code == 404:
-            logger.info("Ошибка 404 - Документ не найден")
+            logger.info("VIEW - Ошибка 404 - Документ не найден")
             raise HTTPException(status_code=404, detail=str(hash))
         else:
-            logger.critical("Ошикбка " + str(response.text))
+            logger.critical("VIEW - Ошикбка " + str(response.text))
             raise HTTPException(status_code=response.status_code, detail=f"External API returned error: {response.text}")
     except HTTPException as exc:
         if exc.status_code == 404:
