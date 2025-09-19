@@ -27,12 +27,14 @@
         <div class="tabs">
             <a href="{{ url_for('document_list') }}" class="tab active">Документация врача</a>
         </div>
+        <div class="tabs">
+            <a href="{{ url_for('how_write_doc') }}?type_d={{ type }}" class="tab active">Как писать инструкции</a>
+        </div>
         {% else %}
         <div class="tabs">
             <a href="{{ url_for('document_list') }}" class="tab active">Документация</a>
         </div>
         {% endif %}
-        
     </div>
     
     <div class="container">

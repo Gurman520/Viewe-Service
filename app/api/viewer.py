@@ -21,7 +21,6 @@ async def list_documents(request: Request, q: Optional[str] = None):
         
         if response.is_success:
             doc = response.json()
-            # logger.info(f"Открываем страницу со списком инструкций {Config.subgroup_list}")
             return templates.TemplateResponse(
                 "list.html",
                 {"request": request, "documents": doc["document"], "search_query": q, "subgroup": Config.subgroup_list, "type": "adm"}
@@ -41,8 +40,6 @@ async def list_documents(request: Request, q: Optional[str] = None):
         
         if response.is_success:
             doc = response.json()
-            # logger.info(f"Открываем страницу со списком документов {doc["document"]}")
-            # logger.info(f"Открываем страницу со списком инструкций {Config.subgroup_list}")
             return templates.TemplateResponse(
                 "list.html",
                 {"request": request, "documents": doc["document"], "search_query": q, "subgroup": Config.subgroup_list, "type": "doctor"}
@@ -128,3 +125,11 @@ async def document_router(
     except Exception as e:
         logger.critical("Ошибка " + str(e))
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/write/doc", name="how_write_doc")
+async def how_write_doc(request: Request, type_d: str = ""):
+    logger.info("Смотрим как писать инструкции")
+    return templates.TemplateResponse(
+                "how_write.html",
+                {"request": request,"type": type_d}
+            )
