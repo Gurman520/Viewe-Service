@@ -8,7 +8,7 @@ from pathlib import Path
 from app.log.logger import logger
 from collections import Counter
 import os
-from app.db.process import get_documents_by_type
+from app.db.process import get_documents_by_type, get_document_by_filename
 
 
 DEFAULT_GROUP = "Без группы"  # Группа по умолчанию
@@ -38,7 +38,7 @@ def get_document_list(search_query: Optional[str] = None, type: str = "") -> dic
     logger.info("APP - Получен список документов для отображения в списке")
     return document
 
-def process_wiki_links(content: str) -> str:
+def process_wiki_links(content: str, doc_type: str) -> str:
     """Обрабатывает вики-синтаксис ссылок ![[filename.ext]]"""
 
     def replace_match(match):
@@ -78,27 +78,29 @@ def process_wiki_links(content: str) -> str:
         content
     )
 
-    def replace_wiki_link(match):
+    def replace_wiki_link(match, doc_type):
         """Подготавливает ссылки на связанные документы"""
         doc_name = match.group(1)
-        # Экранируем специальные символы в URL
-        encoded_name = doc_name.replace(' ', '_')
-        return f'<a href="/view/{encoded_name}" class="wiki-link">{doc_name}</a>'
+        doc = get_document_by_filename(doc_name)
+        hash = "not_found_doc"
+        if doc:
+            hash = doc['content_hash']
+        return f'<a href="/view/{hash}?type_d={doc_type}" class="wiki-link">{doc_name}</a>'
     
     # Регулярка для поиска [[Имя Документа]]
     content = sub(
         r'(?<!`!)\[\[([^\]\n]+)\]\]', 
-        replace_wiki_link, 
+        lambda match: replace_wiki_link(match, doc_type),  
         content
     )
 
     logger.info("APP - Подготовка ссылок завершена")
     return content
 
-def render_markdown(content: str) -> str:
+def render_markdown(content: str, doc_type: str = "") -> str:
     """Преобразовать markdown в HTML"""
     # Сначала обрабатываем вики-синтаксис изображений
-    processed_content = process_wiki_links(content)
+    processed_content = process_wiki_links(content, doc_type)
     
     extensions = [
         "fenced_code",

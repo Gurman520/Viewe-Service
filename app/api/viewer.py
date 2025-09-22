@@ -86,7 +86,7 @@ async def document_router(
     try:
         async with AsyncClient() as client:
             response = await client.get(f"http://127.0.0.1:{Config.PORT}/api/document/{hash}", 
-                                        cookies={"doc_session": doc_session})
+                                        cookies={"doc_session": doc_session}, params={"doc_type":  type_d})
         if response.status_code == 301 :
             doc = response.json()
             logger.info("VIEW - Ошибка 301 - отправляем на авторизацию")

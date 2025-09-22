@@ -125,10 +125,11 @@ async def create_isolated_view(request: Request, hash: str):
 async def document_route(
     request: Request,
     hash: str,
+    doc_type: str = "",
     doc_session: str = Cookie(default=None)
 ):
     logger.info("API DOC - Запрошен файл для просмотра по hash: " + hash)
 
-    d = await get_document(hash=hash, doc_session=doc_session)
+    d = await get_document(hash=hash, doc_session=doc_session, doc_type=doc_type)
     
     return d

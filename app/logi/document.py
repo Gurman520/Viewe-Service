@@ -11,7 +11,8 @@ from pathlib import Path
 
 async def view_document(
     document: dict,
-    doc_session: str = Cookie(default=None)
+    doc_session: str = Cookie(default=None),
+    doc_type: str = ""
 ):
     md_file = Config.DOCUMENTS_DIR / document['file_path']
     
@@ -42,13 +43,13 @@ async def view_document(
                 )
         
     logger.info("APP - Начинаем формировать итоговый ответ")
-    return await get_document_response(md_file)
+    return await get_document_response(md_file, doc_type)
 
 
-async def get_document_response(md_file: Path):
+async def get_document_response(md_file: Path, doc_type: str):
     """Создает ответ с содержимым документа"""
     post = load_document_without_password(md_file)
-    content = render_markdown(post.content)
+    content = render_markdown(post.content, doc_type)
 
     attachments = []
     for match in finditer(r'!\[\[([^\]\n]+)\]\]', post.content):
@@ -66,7 +67,7 @@ async def get_document_response(md_file: Path):
     }
     return JSONResponse(content=doc, status_code=200)
 
-async def get_document(hash: str, doc_session: str):
+async def get_document(hash: str, doc_session: str, doc_type: str):
     logger.info("APP - Получение документа")
     document = get_document_by_hash(hash)
 
@@ -76,7 +77,7 @@ async def get_document(hash: str, doc_session: str):
             return JSONResponse(content={"document_name": document['file_path']}, status_code=401)
 
         try:
-            return await view_document(document, doc_session)
+            return await view_document(document, doc_session, doc_type=doc_type)
         except HTTPException as exp:
             logger.debug(f"Получена ошибка при обработке - {exp.status_code} - {exp.detail}")
             return JSONResponse(content=exp.detail, status_code=exp.status_code)
@@ -84,7 +85,7 @@ async def get_document(hash: str, doc_session: str):
         raise HTTPException(status_code=404, detail="Document not found")
     
 
-def get_isolated_document(hash: str):
+def get_isolated_document(hash: str, doc_type: str = ""):
     logger.info("APP - Получение изолированного документа")
     document = get_document_by_hash(hash)
 
@@ -93,7 +94,7 @@ def get_isolated_document(hash: str):
 
             md_file = Config.DOCUMENTS_DIR / document['file_path']
             post = load_document_without_password(md_file)
-            content = render_markdown(post.content)
+            content = render_markdown(post.content, doc_type)
             doc = {
                 "title": md_file.stem,
                 "content": content,

@@ -215,4 +215,60 @@ def get_document_by_hash(content_hash: str, db_path: str = "content.db") -> Opti
     except Exception as e:
         logger.error(f"Ошибка при поиске документа по хешу: {e}")
         return None
+
+def get_document_by_filename(filename: str, db_path: str = "content.db") -> Optional[Dict]:
+    """
+    Находит один документ по имени файла
     
+    Args:
+        db_path: Путь к базе данных
+        filename: Имя файла для поиска (например: "document.md")
+        
+    Returns:
+        Данные документа или None если не найден
+    """
+    try:
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT 
+                    file_path,
+                    content_hash,
+                    group_name,
+                    subgroup,
+                    description,
+                    title,
+                    author,
+                    password,
+                    hide,
+                    type,
+                    created_at,
+                    updated_at
+                FROM documents 
+                WHERE is_deleted = FALSE AND LOWER(title) LIKE LOWER(?)
+            ''', (f'%{filename}%',))
+            
+            row = cursor.fetchone()
+            if row:
+                return {
+                    'file_path': row['file_path'],
+                    'file_name': Path(row['file_path']).name,
+                    'content_hash': row['content_hash'],
+                    'group': row['group_name'],
+                    'subgroup': row['subgroup'],
+                    'description': row['description'],
+                    'title': row['title'],
+                    'author': row['author'],
+                    'password': row['password'],
+                    'hide': bool(row['hide']),
+                    'type': row['type'],
+                    'created_at': row['created_at'],
+                    'updated_at': row['updated_at']
+                }
+            return None
+            
+    except Exception as e:
+        print(f"Ошибка при поиске документа по имени файла '{filename}': {e}")
+        return None
