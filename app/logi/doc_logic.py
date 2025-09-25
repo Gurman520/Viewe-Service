@@ -142,6 +142,7 @@ def get_subgroup_list() -> list:
     counter = Counter(sub)
     filtered_data = {key for key, count in counter.items() if count >= 3}
     filtered_data = list(filtered_data)
-    filtered_data.remove('Без группы')
+    if 'Без группы' in filtered_data:
+        filtered_data.remove('Без группы')
     logger.info(f'APP - Сформирован список подгрупп')
     Config.set_list(filtered_data)

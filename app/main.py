@@ -15,7 +15,7 @@ templates = Jinja2Templates(directory="app/templates")
 app = FastAPI(
     title="Markdown Viewer",
     description="Сервис отображения документации созданной в Obsidian",
-    version="2.0.4")
+    version="2.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -73,7 +73,7 @@ process_first_run(Config.DOCUMENTS_DIR, Config.DB_PATH)
 scheduler = BackgroundScheduler()
 scheduler.add_job(
     get_subgroup_list,
-    trigger=IntervalTrigger(hours=10),
+    trigger=IntervalTrigger(hours=1),
     next_run_time = datetime.now()  # Запустить сразу при старте
 )
 

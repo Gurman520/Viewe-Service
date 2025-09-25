@@ -1,9 +1,16 @@
 function validateSearch() {
     const searchInput = document.getElementById('searchInput');
+    let doc_type = $('#doc-info').attr('data-doc-type');
     if (searchInput.value === ' ') {
         // Если поле поиска пустое, просто перезагружаем страницу
-        window.location.href = "/view/list";
-        return false;
+        if (doc_type == 'doctor'){
+            window.location.href = "/view/list";
+            return false;
+        } else {
+            window.location.href = "/view/adm/list";
+            return false;
+        }
+        
     }
     return true;
 }

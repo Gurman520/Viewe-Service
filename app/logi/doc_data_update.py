@@ -11,15 +11,31 @@ from app.db.process import file_exists_in_db, update_document, insert_document
 
 
 def calculate_hash(file_path: Path) -> str:
-    """Вычисление хеша содержимого файла"""
+    """Вычисление хеша на основе названия файла и группы из метаданных"""
     try:
-        with open(file_path, 'rb') as f:
-            file_hash = hashlib.md5()
-            while chunk := f.read(8192):
-                file_hash.update(chunk)
+        # Получаем название файла (без расширения)
+        file_name = file_path.stem
+        
+        # Читаем метаданные для получения группы
+        group = ""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                post = frontmatter.load(f)
+                group = post.get("group", "")
+        except:
+            pass  # Если не удалось прочитать метаданные, оставляем группу пустой
+        
+        # Создаем строку для хэширования
+        data_to_hash = f"{file_name}:{group}"
+        
+        # Вычисляем MD5 хэш
+        file_hash = hashlib.md5()
+        file_hash.update(data_to_hash.encode('utf-8'))
+        
         return file_hash.hexdigest()
+        
     except Exception as e:
-        logger.error(f"APP | DOC_UPADTE - Ошибка при вычислении хеша {file_path}: {e}")
+        logger.error(f"APP | DOC_UPDATE - Ошибка при вычислении хеша {file_path}: {e}")
         return ""
     
 def get_all_md_files(documents_dir: Path) -> List[Path]:

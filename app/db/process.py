@@ -116,7 +116,7 @@ def get_documents_by_type(search_query: Optional[str] = None, db_path: str = "co
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             
-            if doc_type:
+            if doc_type and doc_type != 'adm':
                 query = '''
                     SELECT file_path, title, content_hash, group_name, subgroup, description
                     FROM documents 
